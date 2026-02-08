@@ -1,3 +1,16 @@
+/**
+ * Staff — renders a MusicXML score using OpenSheetMusicDisplay (OSMD).
+ *
+ * This component manages the full OSMD lifecycle:
+ *   1. Creates the renderer once (lazy initialization on first render)
+ *   2. Re-renders whenever `scoreXml` changes
+ *   3. Updates cursor color/opacity whenever `cursorStyle` changes
+ *
+ * The parent controls cursor position via the imperative `StaffHandle` ref,
+ * keeping the "which note is current" logic in the parent (App) while this
+ * component focuses purely on rendering.
+ */
+
 import {
   forwardRef,
   useCallback,
@@ -6,93 +19,113 @@ import {
   useRef,
 } from "react";
 import { OpenSheetMusicDisplay } from "opensheetmusicdisplay";
+import type { CursorStyle } from "../types";
 
-type CursorStyle = {
-  color: string;
-  alpha: number;
-};
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-type StaffProps = {
+interface StaffProps {
+  /** Complete MusicXML document string to render. */
   scoreXml: string;
+  /** Visual style for the playback cursor. */
   cursorStyle: CursorStyle;
-};
+}
 
-export type StaffHandle = {
-  nextCursor: () => void;
-  resetCursor: () => void;
-};
+/** Imperative handle exposed to parent components via ref. */
+export interface StaffHandle {
+  /** Advance the cursor to the next note position. */
+  nextCursor(): void;
+  /** Reset the cursor to the first note. */
+  resetCursor(): void;
+}
 
-const DEFAULT_ZOOM = 2;
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Zoom level for the rendered score (2× for readability). */
+const SCORE_ZOOM = 2;
+
+/** OSMD configuration — static across the component's lifetime. */
+const OSMD_OPTIONS = {
+  drawTitle: false,
+  drawPartNames: false,
+  drawMeasureNumbers: false,
+  autoResize: true,
+  followCursor: true,
+} as const;
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 const Staff = forwardRef<StaffHandle, StaffProps>(function Staff(
   { scoreXml, cursorStyle },
-  ref
+  ref,
 ) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const osmdRef = useRef<OpenSheetMusicDisplay | null>(null);
-  const cursorStyleRef = useRef<CursorStyle>(cursorStyle);
 
-  const applyCursorStyle = useCallback((style?: CursorStyle) => {
+  // Keep a mutable ref to the latest cursor style so the score-render
+  // effect can apply the current style without depending on it.
+  const cursorStyleRef = useRef(cursorStyle);
+  cursorStyleRef.current = cursorStyle;
+
+  /** Applies color and opacity to the OSMD cursor element. */
+  const applyCursorStyle = useCallback((style: CursorStyle) => {
     const cursor = osmdRef.current?.cursor;
     if (!cursor) return;
-    const nextStyle = style ?? cursorStyleRef.current;
     cursor.CursorOptions = {
       ...cursor.CursorOptions,
-      color: nextStyle.color,
-      alpha: nextStyle.alpha,
+      color: style.color,
+      alpha: style.alpha,
     };
     cursor.show();
   }, []);
 
-  const ensureOsmd = useCallback(() => {
+  /** Lazily creates the OSMD instance (exactly once per mount). */
+  const getOrCreateOsmd = useCallback((): OpenSheetMusicDisplay | null => {
+    if (osmdRef.current) return osmdRef.current;
     if (!containerRef.current) return null;
-    if (!osmdRef.current) {
-      osmdRef.current = new OpenSheetMusicDisplay(containerRef.current, {
-        drawTitle: false,
-        drawPartNames: false,
-        drawMeasureNumbers: false,
-        autoResize: true,
-        followCursor: true,
-      });
-    }
+    osmdRef.current = new OpenSheetMusicDisplay(containerRef.current, OSMD_OPTIONS);
     return osmdRef.current;
   }, []);
 
-  const renderScore = useCallback(async () => {
-    const osmd = ensureOsmd();
+  // Expose imperative cursor controls to the parent.
+  useImperativeHandle(ref, () => ({
+    nextCursor: () => osmdRef.current?.cursor?.next(),
+    resetCursor: () => osmdRef.current?.cursor?.reset(),
+  }), []);
+
+  // Load and render the score whenever the XML changes.
+  useEffect(() => {
+    const osmd = getOrCreateOsmd();
     if (!osmd) return;
 
-    await osmd.load(scoreXml);
-    osmd.zoom = DEFAULT_ZOOM;
-    osmd.render();
+    let cancelled = false;
 
-    applyCursorStyle();
-    osmd.cursor?.reset();
-  }, [applyCursorStyle, ensureOsmd, scoreXml]);
+    (async () => {
+      await osmd.load(scoreXml);
+      if (cancelled) return;
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      nextCursor: () => {
-        osmdRef.current?.cursor?.next();
-      },
-      resetCursor: () => {
-        osmdRef.current?.cursor?.reset();
-      },
-    }),
-    []
-  );
+      osmd.zoom = SCORE_ZOOM;
+      osmd.render();
+      applyCursorStyle(cursorStyleRef.current);
+      osmd.cursor?.reset();
+    })();
 
+    return () => {
+      cancelled = true;
+    };
+  }, [scoreXml, getOrCreateOsmd, applyCursorStyle]);
+
+  // Update cursor appearance independently of score rendering.
   useEffect(() => {
-    void renderScore();
-  }, [renderScore]);
-
-  useEffect(() => {
-    cursorStyleRef.current = cursorStyle;
     applyCursorStyle(cursorStyle);
-  }, [applyCursorStyle, cursorStyle]);
+  }, [cursorStyle, applyCursorStyle]);
 
-  return <div id="osmd" className="osmd" ref={containerRef}></div>;
+  return <div id="osmd" className="osmd" ref={containerRef} />;
 });
 
 export default Staff;

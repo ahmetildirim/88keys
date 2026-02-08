@@ -1,196 +1,210 @@
-import type { RangePreset } from "../config/presets";
+/**
+ * MusicXML score generation for sight-reading practice.
+ *
+ * Generates valid MusicXML 3.1 documents containing random natural notes
+ * within a specified pitch range. The generated scores use:
+ *
+ *   - 4/4 time signature
+ *   - Quarter notes only (keeping rhythm simple for pitch-focused practice)
+ *   - Natural notes only (no accidentals)
+ *   - A deterministic PRNG so the same seed always produces the same score
+ *
+ * @see https://www.musicxml.com/for-developers/ for the MusicXML specification.
+ */
 
-const STEP_TO_SEMITONE = {
-  C: 0,
-  D: 2,
-  E: 4,
-  F: 5,
-  G: 7,
-  A: 9,
-  B: 11,
-} as const;
+import type { Clef, Pitch, RangePreset } from "../types";
+import { naturalPitchesInRange, pitchToMidi } from "./midi";
 
-const STEPS = Object.keys(STEP_TO_SEMITONE) as Array<keyof typeof STEP_TO_SEMITONE>;
+// ---------------------------------------------------------------------------
+// Deterministic PRNG (splitmix32 variant)
+// ---------------------------------------------------------------------------
 
-type Rng = () => number;
+/**
+ * Creates a seeded pseudo-random number generator.
+ *
+ * Given the same seed, the returned function always produces the identical
+ * sequence of values in [0, 1). This guarantees that identical user settings
+ * and seed reproduce the exact same score — useful for sharing or replaying.
+ */
+function createRng(seed: number): () => number {
+    let state = seed >>> 0;
+    return () => {
+        state += 0x6d2b79f5;
+        let t = state;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
 
-type NotePitch = {
-  step: keyof typeof STEP_TO_SEMITONE;
-  octave: number;
+/** Picks a uniformly random element from a non-empty array. */
+function pick<T>(items: readonly T[], rng: () => number): T {
+    return items[Math.floor(rng() * items.length)];
+}
+
+// ---------------------------------------------------------------------------
+// MusicXML serialization helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * MusicXML divisions per quarter note. With divisions = 4:
+ *   - eighth  note duration = 2
+ *   - quarter note duration = 4
+ *   - half    note duration = 8
+ */
+const DIVISIONS = 4;
+
+/** Maps duration units to MusicXML <type> element values. */
+const DURATION_TO_TYPE: Readonly<Record<number, string>> = {
+    2: "eighth",
+    4: "quarter",
+    8: "half",
 };
 
-type MeasureData = {
-  xml: string;
-  expectedMidi: number[];
-};
+/** Serializes a single <note> element. */
+function serializeNote(pitch: Pitch, duration: number): string {
+    const type = DURATION_TO_TYPE[duration] ?? "quarter";
+    return [
+        "        <note>",
+        `          <pitch>`,
+        `            <step>${pitch.step}</step>`,
+        `            <octave>${pitch.octave}</octave>`,
+        `          </pitch>`,
+        `          <duration>${duration}</duration>`,
+        `          <type>${type}</type>`,
+        "        </note>",
+    ].join("\n");
+}
 
-const toMidi = (step: keyof typeof STEP_TO_SEMITONE, octave: number) =>
-  (octave + 1) * 12 + STEP_TO_SEMITONE[step];
+/**
+ * Returns the <attributes> block for the first measure, declaring
+ * key signature (C major), time signature (4/4), and clef.
+ */
+function serializeAttributes(clef: Clef): string {
+    const sign = clef === "treble" ? "G" : "F";
+    const line = clef === "treble" ? 2 : 4;
+    return [
+        "        <attributes>",
+        `          <divisions>${DIVISIONS}</divisions>`,
+        "          <key><fifths>0</fifths></key>",
+        "          <time><beats>4</beats><beat-type>4</beat-type></time>",
+        `          <clef><sign>${sign}</sign><line>${line}</line></clef>`,
+        "        </attributes>",
+    ].join("\n");
+}
 
-// Deterministic RNG so identical settings + seed produce the same score.
-const createRng = (seed: number) => {
-  let value = seed >>> 0;
-  return () => {
-    value += 0x6d2b79f5;
-    let t = value;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-};
+// ---------------------------------------------------------------------------
+// Measure generation
+// ---------------------------------------------------------------------------
 
-const randomChoice = <T,>(arr: T[], rng: Rng): T => arr[Math.floor(rng() * arr.length)];
+interface MeasureResult {
+    /** MusicXML fragment for one <measure>. */
+    xml: string;
+    /** MIDI note numbers for the notes in this measure, in order. */
+    midiNotes: number[];
+}
 
-const buildNaturalNotesInRange = (minMidi: number, maxMidi: number): NotePitch[] => {
-  const notes: NotePitch[] = [];
-  for (let octave = 0; octave <= 8; octave += 1) {
-    for (const step of STEPS) {
-      const midi = (octave + 1) * 12 + STEP_TO_SEMITONE[step];
-      if (midi >= minMidi && midi <= maxMidi) {
-        notes.push({ step, octave });
-      }
+/**
+ * Generates a single measure of random quarter notes.
+ *
+ * Notes are drawn uniformly from the natural pitches within the range
+ * preset. All notes are quarter-note duration (duration = DIVISIONS).
+ */
+function buildMeasure(
+    pitchPool: readonly Pitch[],
+    noteCount: number,
+    measureNumber: number,
+    clef: Clef,
+    isFirstMeasure: boolean,
+    rng: () => number,
+): MeasureResult {
+    const pitches: Pitch[] = [];
+    for (let i = 0; i < noteCount; i++) {
+        pitches.push(pick(pitchPool, rng));
     }
-  }
-  return notes;
-};
 
-const generateRhythm = (allowedDurations: number[], notesCount: number, rng: Rng): number[] => {
-  const total = 16; // 4/4 with divisions=4
-  const durations: number[] = [];
-  let remaining = total;
-  const minDuration = Math.min(...allowedDurations);
+    const midiNotes = pitches.map(pitchToMidi);
+    const attributes = isFirstMeasure ? "\n" + serializeAttributes(clef) : "";
+    const noteElements = pitches
+        .map((p) => serializeNote(p, DIVISIONS))
+        .join("\n");
 
-  for (let i = 0; i < notesCount; i += 1) {
-    const slotsLeft = notesCount - i - 1;
-    const maxForSlot = remaining - minDuration * slotsLeft;
-    const options = allowedDurations.filter(
-      (duration) => duration <= maxForSlot && duration <= remaining
-    );
-    const duration = options.length > 0 ? randomChoice(options, rng) : minDuration;
-    durations.push(duration);
-    remaining -= duration;
-  }
+    const xml = [
+        `      <measure number="${measureNumber}">${attributes}`,
+        noteElements,
+        "      </measure>",
+    ].join("\n");
 
-  if (remaining > 0) {
-    durations[durations.length - 1] += remaining;
-  }
+    return { xml, midiNotes };
+}
 
-  return durations;
-};
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
-type BuildMeasureInput = {
-  rangePreset: RangePreset;
-  notesCount: number;
-  measureNumber: number;
-  includeAttributes: boolean;
-  rng: Rng;
-};
+/** Input configuration for score generation. */
+export interface ScoreConfig {
+    /** Which pitch range and clef to use. */
+    rangePreset: RangePreset;
+    /** Notes per measure (typically 4 for 4/4 with quarter notes). */
+    notesPerMeasure: number;
+    /** Total number of notes across all measures. */
+    totalNotes: number;
+    /** Seed for deterministic randomization. Same seed → same score. */
+    seed?: number;
+}
 
-const buildMeasureXml = ({
-  rangePreset,
-  notesCount,
-  measureNumber,
-  includeAttributes,
-  rng,
-}: BuildMeasureInput): MeasureData => {
-  const { minMidi, maxMidi, clef } = rangePreset;
-  const notePool = buildNaturalNotesInRange(minMidi, maxMidi);
-  const durations = generateRhythm([4], notesCount, rng);
+/** The output of score generation. */
+export interface GeneratedScore {
+    /** Complete MusicXML document string, ready for OSMD. */
+    xml: string;
+    /** Ordered MIDI note numbers the player must play to complete the score. */
+    expectedNotes: number[];
+}
 
-  const notes = durations.map((duration) => {
-    const pitch = randomChoice(notePool, rng);
-    return { pitch, duration };
-  });
+/**
+ * Generates a complete MusicXML score filled with random notes.
+ *
+ * The score is divided into measures of `notesPerMeasure` quarter notes.
+ * The final measure may contain fewer notes if `totalNotes` is not evenly
+ * divisible by `notesPerMeasure`.
+ */
+export function generateScore(config: ScoreConfig): GeneratedScore {
+    const { rangePreset, notesPerMeasure, totalNotes, seed = Date.now() } = config;
 
-  const expectedMidi = notes.map((note) => toMidi(note.pitch.step, note.pitch.octave));
+    const rng = createRng(seed);
+    const pitchPool = naturalPitchesInRange(rangePreset.minMidi, rangePreset.maxMidi);
 
-  const attributes = includeAttributes
-    ? `<attributes>
-          <divisions>4</divisions>
-          <key>
-            <fifths>0</fifths>
-          </key>
-          <time>
-            <beats>4</beats>
-            <beat-type>4</beat-type>
-          </time>
-          <clef>
-            <sign>${clef === "treble" ? "G" : "F"}</sign>
-            <line>${clef === "treble" ? 2 : 4}</line>
-          </clef>
-        </attributes>`
-    : "";
+    const measureXmls: string[] = [];
+    const expectedNotes: number[] = [];
+    let remaining = totalNotes;
+    let measureNumber = 1;
 
-  const xml = `<measure number="${measureNumber}">
-        ${attributes}
-        ${notes
-          .map((note) => {
-            const typeMap: Record<number, string> = {
-              2: "eighth",
-              4: "quarter",
-              8: "half",
-            };
-            const durationType = typeMap[note.duration] || "quarter";
+    while (remaining > 0) {
+        const count = Math.min(notesPerMeasure, remaining);
+        const measure = buildMeasure(
+            pitchPool, count, measureNumber,
+            rangePreset.clef, measureNumber === 1, rng,
+        );
+        measureXmls.push(measure.xml);
+        expectedNotes.push(...measure.midiNotes);
+        remaining -= count;
+        measureNumber++;
+    }
 
-            return `<note><pitch><step>${note.pitch.step}</step><octave>${note.pitch.octave}</octave></pitch><duration>${note.duration}</duration><type>${durationType}</type></note>`;
-          })
-          .join("\n")}
-      </measure>`;
+    const xml = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN"',
+        '  "http://www.musicxml.org/dtds/partwise.dtd">',
+        '<score-partwise version="3.1">',
+        "  <part-list>",
+        '    <score-part id="P1"><part-name>Music</part-name></score-part>',
+        "  </part-list>",
+        '  <part id="P1">',
+        measureXmls.join("\n"),
+        "  </part>",
+        "</score-partwise>",
+    ].join("\n");
 
-  return { xml, expectedMidi };
-};
-
-type BuildScoreInput = {
-  rangePreset: RangePreset;
-  notesPerMeasure: number;
-  totalNotes: number;
-  seed?: number;
-};
-
-type BuildScoreOutput = {
-  xml: string;
-  expected: number[];
-};
-
-export const buildScore = ({
-  rangePreset,
-  notesPerMeasure,
-  totalNotes,
-  seed = Date.now(),
-}: BuildScoreInput): BuildScoreOutput => {
-  const measures: string[] = [];
-  const expected: number[] = [];
-  let remainingNotes = totalNotes;
-  let measureNumber = 1;
-  const rng = createRng(seed);
-
-  while (remainingNotes > 0) {
-    const count = Math.min(notesPerMeasure, remainingNotes);
-    const data = buildMeasureXml({
-      rangePreset,
-      notesCount: count,
-      measureNumber,
-      includeAttributes: measureNumber === 1,
-      rng,
-    });
-    measures.push(data.xml);
-    expected.push(...data.expectedMidi);
-    remainingNotes -= count;
-    measureNumber += 1;
-  }
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
-  <score-partwise version="3.1">
-    <part-list>
-      <score-part id="P1">
-        <part-name>Music</part-name>
-      </score-part>
-    </part-list>
-    <part id="P1">
-      ${measures.join("\n")}
-    </part>
-  </score-partwise>`;
-
-  return { xml, expected };
-};
+    return { xml, expectedNotes };
+}
