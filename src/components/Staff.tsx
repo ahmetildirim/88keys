@@ -49,7 +49,7 @@ export interface StaffHandle {
 // ---------------------------------------------------------------------------
 
 /** Zoom level for the rendered score (2× for readability). */
-const SCORE_ZOOM = 2;
+const SCORE_ZOOM = 1;
 
 // ---------------------------------------------------------------------------
 // Component

@@ -24,6 +24,14 @@ import {
   generateScore,
   type NoteName,
 } from "./generator";
+import {
+  DEFAULT_THEME,
+  THEME_NAMES,
+  THEMES,
+  applyTheme,
+  isThemeName,
+  type ThemeName,
+} from "./theme/themes";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -35,6 +43,7 @@ type CursorFeedback = "idle" | "correct" | "wrong";
 const MIN_TOTAL_NOTES = 4;
 const MAX_TOTAL_NOTES = 200;
 const DEFAULT_TOTAL_NOTES = 100;
+const THEME_STORAGE_KEY = "88keys-theme";
 
 /** Clamps a note count to the allowed [MIN, MAX] range. */
 function clampNoteCount(n: number): number {
@@ -54,6 +63,29 @@ export default function App() {
   const [maxNote, setMaxNote] = useState<NoteName>("G5");
   const [totalNotes, setTotalNotes] = useState(DEFAULT_TOTAL_NOTES);
   const [seed, setSeed] = useState(1);
+  const [isControlPanelOpen, setControlPanelOpen] = useState(false);
+  const [theme, setTheme] = useState<ThemeName>(() => {
+    if (typeof window === "undefined") return DEFAULT_THEME;
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return isThemeName(storedTheme) ? storedTheme : DEFAULT_THEME;
+  });
+
+  useEffect(() => {
+    applyTheme(theme);
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setControlPanelOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => {
+      window.removeEventListener("keydown", onEscape);
+    };
+  }, []);
 
   // -- Score generation (derived from settings) -----------------------------
 
@@ -115,16 +147,6 @@ export default function App() {
 
   return (
     <main className="app">
-      <ControlPanel
-        minNote={minNote}
-        maxNote={maxNote}
-        totalNotes={totalNotes}
-        onMinNoteChange={setMinNote}
-        onMaxNoteChange={setMaxNote}
-        onTotalNotesChange={setTotalNotes}
-        onNewScore={() => setSeed((s) => s + 1)}
-      />
-
       <section className="sheet">
         <div className="osmd-wrapper">
           <Staff ref={staffRef} scoreXml={score.xml} cursorStyle={cursorStyle} />
@@ -132,6 +154,21 @@ export default function App() {
       </section>
 
       <footer className="note">{midiStatus}</footer>
+
+      <ControlPanel
+        isOpen={isControlPanelOpen}
+        minNote={minNote}
+        maxNote={maxNote}
+        totalNotes={totalNotes}
+        theme={theme}
+        onClose={() => setControlPanelOpen(false)}
+        onToggle={() => setControlPanelOpen((open) => !open)}
+        onThemeChange={setTheme}
+        onMinNoteChange={setMinNote}
+        onMaxNoteChange={setMaxNote}
+        onTotalNotesChange={setTotalNotes}
+        onNewScore={() => setSeed((s) => s + 1)}
+      />
     </main>
   );
 }
@@ -141,9 +178,14 @@ export default function App() {
 // ---------------------------------------------------------------------------
 
 interface ControlPanelProps {
+  isOpen: boolean;
   minNote: NoteName;
   maxNote: NoteName;
   totalNotes: number;
+  theme: ThemeName;
+  onClose: () => void;
+  onToggle: () => void;
+  onThemeChange: (themeName: ThemeName) => void;
   onMinNoteChange: (note: NoteName) => void;
   onMaxNoteChange: (note: NoteName) => void;
   onTotalNotesChange: (count: number) => void;
@@ -151,15 +193,19 @@ interface ControlPanelProps {
 }
 
 /**
- * Header with the title copy and user-adjustable controls.
+ * Floating panel with user-adjustable controls.
  *
- * Extracted as a named function component for readability, but kept in
- * the same file because it has no independent reuse outside of App.
+ * Kept in this file because it has no independent reuse outside of App.
  */
 function ControlPanel({
+  isOpen,
   minNote,
   maxNote,
   totalNotes,
+  theme,
+  onClose,
+  onToggle,
+  onThemeChange,
   onMinNoteChange,
   onMaxNoteChange,
   onTotalNotesChange,
@@ -169,68 +215,118 @@ function ControlPanel({
   const maxIndex = NOTE_NAMES.indexOf(maxNote);
   const maxCandidates = NOTE_NAMES.filter((_, index) => index >= minIndex);
   const minCandidates = NOTE_NAMES.filter((_, index) => index <= maxIndex);
+  const panelId = "floating-controls";
 
   return (
-    <header className="hero">
-      <div>
-        <p className="eyebrow">Sightreading trainer</p>
-        <h1>Practice one measure at a time.</h1>
-        <p className="sub">
-          Generate random notes and read them on staff. Adjust range as you
-          improve.
-        </p>
-      </div>
+    <>
+      <button
+        type="button"
+        className={`control-backdrop ${isOpen ? "visible" : ""}`}
+        onClick={onClose}
+        aria-label="Close controls"
+        tabIndex={isOpen ? 0 : -1}
+      />
 
-      <div className="controls">
-        <button className="primary" onClick={onNewScore}>
-          New Random Score
+      <div className={`floating-controls ${isOpen ? "open" : ""}`}>
+        {isOpen ? (
+          <div className="controls" id={panelId}>
+            <div className="controls-head">
+              <div>
+                <p className="controls-label">Practice controls</p>
+                <p className="controls-caption">
+                  Build your next randomized exercise.
+                </p>
+              </div>
+              <button type="button" className="icon-button" onClick={onClose}>
+                Close
+              </button>
+            </div>
+
+            <button type="button" className="primary" onClick={onNewScore}>
+              Generate New Score
+            </button>
+
+            <label className="field" htmlFor="theme-select">
+              <span>Theme</span>
+              <select
+                id="theme-select"
+                className="select"
+                value={theme}
+                onChange={(event) =>
+                  onThemeChange(event.target.value as ThemeName)
+                }
+              >
+                {THEME_NAMES.map((themeName) => (
+                  <option key={themeName} value={themeName}>
+                    {THEMES[themeName].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field" htmlFor="min-note-select">
+              <span>Min note</span>
+              <select
+                id="min-note-select"
+                className="select"
+                value={minNote}
+                onChange={(event) => onMinNoteChange(event.target.value as NoteName)}
+              >
+                {minCandidates.map((note) => (
+                  <option key={note} value={note}>
+                    {note}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field" htmlFor="max-note-select">
+              <span>Max note</span>
+              <select
+                id="max-note-select"
+                className="select"
+                value={maxNote}
+                onChange={(event) => onMaxNoteChange(event.target.value as NoteName)}
+              >
+                {maxCandidates.map((note) => (
+                  <option key={note} value={note}>
+                    {note}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field" htmlFor="note-count-input">
+              <span>Total notes</span>
+              <input
+                id="note-count-input"
+                className="number"
+                type="number"
+                min={MIN_TOTAL_NOTES}
+                max={MAX_TOTAL_NOTES}
+                value={totalNotes}
+                onChange={(event) => {
+                  const n = Number(event.target.value);
+                  onTotalNotesChange(
+                    Number.isNaN(n) ? DEFAULT_TOTAL_NOTES : clampNoteCount(n),
+                  );
+                }}
+              />
+            </label>
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          className="control-toggle"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+        >
+          <span>{isOpen ? "Close controls" : "Practice controls"}</span>
+          <span className="toggle-meta">{totalNotes} notes</span>
         </button>
-
-        <label className="switch">
-          <span>Min note</span>
-          <select
-            className="select"
-            value={minNote}
-            onChange={(e) => onMinNoteChange(e.target.value as NoteName)}
-          >
-            {minCandidates.map((note) => (
-              <option key={note} value={note}>
-                {note}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="switch">
-          <span>Max note</span>
-          <select
-            className="select"
-            value={maxNote}
-            onChange={(e) => onMaxNoteChange(e.target.value as NoteName)}
-          >
-            {maxCandidates.map((note) => (
-              <option key={note} value={note}>
-                {note}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="switch">
-          <span>Total notes</span>
-          <input
-            className="number"
-            type="number"
-            min={MIN_TOTAL_NOTES}
-            max={MAX_TOTAL_NOTES}
-            value={totalNotes}
-            onChange={(e) => {
-              const n = Number(e.target.value);
-              onTotalNotesChange(Number.isNaN(n) ? DEFAULT_TOTAL_NOTES : clampNoteCount(n));
-            }}
-          />
-        </label>
       </div>
-    </header>
+    </>
   );
 }
