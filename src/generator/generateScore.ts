@@ -92,16 +92,6 @@ function serializeAttributes(): string {
   ].join("\n");
 }
 
-function serializeClefOnlyAttributes(): string {
-  return [
-    "        <attributes>",
-    "          <staves>2</staves>",
-    "          <clef number=\"1\"><sign>G</sign><line>2</line></clef>",
-    "          <clef number=\"2\"><sign>F</sign><line>4</line></clef>",
-    "        </attributes>",
-  ].join("\n");
-}
-
 function serializeNote(pitch: Pitch, staff: 1 | 2): string {
   return [
     "        <note>",
@@ -167,10 +157,7 @@ export function generateScore(options: GeneratorOptions): GeneratedScore {
     }
 
     expectedNotes.push(...notes.map(pitchToMidi));
-    const attributes =
-      measureNumber === 1
-        ? "\n" + serializeAttributes()
-        : "\n" + serializeClefOnlyAttributes();
+    const attributes = measureNumber === 1 ? "\n" + serializeAttributes() : "";
     const noteDuration = count * DIVISIONS;
     const noteElements = [
       notes.map((note) => serializeNote(note, noteStaff)).join("\n"),
