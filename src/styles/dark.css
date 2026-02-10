@@ -29,6 +29,7 @@
 .dark .practice-footer {
     border-color: #243045;
     background: #0f1829;
+    box-shadow: none;
 }
 
 .dark .practice-session-meta h2 {
@@ -45,8 +46,7 @@
     box-shadow: none;
 }
 
-.dark .practice-stat-chip .material-symbols-outlined,
-.dark .practice-stat-label {
+.dark .practice-stat-chip .material-symbols-outlined {
     color: #8ea2c0;
 }
 
@@ -54,18 +54,17 @@
     color: #e5ecf8;
 }
 
+.dark .practice-stat-total {
+    color: #8ea2c0;
+}
+
 .dark .practice-stat-chip.success {
     background: #0f2d26;
     border-color: #1f6550;
 }
 
-.dark .practice-stat-chip.success .material-symbols-outlined,
-.dark .practice-stat-chip.success .practice-stat-label {
+.dark .practice-stat-chip.success .material-symbols-outlined {
     color: #4ad7a0;
-}
-
-.dark .practice-stat-chip.success .practice-stat-value {
-    color: #c8f5e4;
 }
 
 .dark .timer-chip:hover {
@@ -78,10 +77,6 @@
     background: #1a3155;
 }
 
-.dark .timer-chip-action-icon {
-    color: #80abde;
-}
-
 .dark .practice-progress-label {
     color: #8ea2c0;
 }
@@ -90,8 +85,17 @@
     background: #2a3a54;
 }
 
-.dark .metric-value {
-    color: #e5ecf8;
+.dark .practice-icon-button {
+    color: #8ea2c0;
+}
+
+.dark .practice-icon-button:hover {
+    color: #d5e4fb;
+    background: #1a2740;
+}
+
+.dark .practice-main {
+    background: #0d1424;
 }
 
 .dark .finish-button {

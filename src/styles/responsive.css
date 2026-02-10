@@ -25,14 +25,23 @@
         gap: 16px;
     }
 
-    .practice-header-top {
+    .practice-header-inner {
         grid-template-columns: 1fr;
-        gap: 10px;
+        justify-items: stretch;
+        gap: 12px;
     }
 
-    .practice-stat-list {
-        justify-self: center;
-        flex-wrap: wrap;
+    .practice-session-meta {
+        text-align: center;
+    }
+
+    .practice-header-center {
+        order: 2;
+    }
+
+    .practice-header-actions {
+        order: 3;
+        justify-content: center;
     }
 
     .practice-progress-row {
@@ -40,17 +49,13 @@
     }
 
     .practice-score .osmd {
-        max-height: 68vh;
-    }
-
-    .practice-footer {
-        align-items: center;
+        max-height: 66vh;
     }
 }
 
 @media (max-width: 760px) {
     .practice-header {
-        min-height: 150px;
+        padding: 12px 14px 14px;
     }
 
     .practice-session-meta h2 {
@@ -68,20 +73,20 @@
 
     .practice-stat-chip {
         flex: 1 1 130px;
-        min-height: 46px;
+        min-height: 44px;
         padding: 8px 10px;
     }
 
     .practice-stat-value {
-        font-size: 0.98rem;
-    }
-
-    .practice-stat-label {
-        font-size: 0.65rem;
+        font-size: 1.2rem;
     }
 
     .practice-progress-label {
         font-size: 0.8rem;
+    }
+
+    .practice-header-actions {
+        justify-content: flex-end;
     }
 
     .app-top-bar {
@@ -136,15 +141,8 @@
         flex-wrap: wrap;
     }
 
-    .practice-footer {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
-    }
-
-    .practice-metrics {
-        justify-content: space-between;
-        width: 100%;
+    .practice-footer-inner {
+        justify-content: flex-start;
     }
 
     .finish-button {

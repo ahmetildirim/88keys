@@ -70,7 +70,7 @@ export default function GeneratorSetupPage({
             <main className="setup-main">
                 <div className="setup-wrapper">
                     <header className="setup-intro">
-                        <h1>Generator Setup</h1>
+                        <h1>Generate training session</h1>
                         <p>Configure your sight-reading session parameters.</p>
                     </header>
 

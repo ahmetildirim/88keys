@@ -267,8 +267,6 @@ export default function App() {
         staffRef={staffRef}
         scoreXml={score.xml}
         cursorStyle={cursorStyle}
-        midiConnected={midiConnected}
-        midiLabel={midiLabel}
         rangeLabel={`${minNote} - ${maxNote}`}
         totalNotes={totalNotes}
         completedNotes={completedNotes}

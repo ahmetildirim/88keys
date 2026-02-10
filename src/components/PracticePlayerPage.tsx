@@ -1,14 +1,11 @@
-import type { RefObject } from "react";
+import { useCallback, useEffect, useState, type RefObject } from "react";
 
-import AppTopBar from "./AppTopBar";
 import Staff, { type StaffHandle } from "./Staff";
 
 interface PracticePlayerPageProps {
     staffRef: RefObject<StaffHandle | null>;
     scoreXml: string;
     cursorStyle: { color: string; alpha: number };
-    midiConnected: boolean;
-    midiLabel: string;
     rangeLabel: string;
     totalNotes: number;
     completedNotes: number;
@@ -25,8 +22,6 @@ export default function PracticePlayerPage({
     staffRef,
     scoreXml,
     cursorStyle,
-    midiConnected,
-    midiLabel,
     rangeLabel,
     totalNotes,
     completedNotes,
@@ -38,45 +33,50 @@ export default function PracticePlayerPage({
     onOpenSettings,
     onFinish,
 }: PracticePlayerPageProps) {
+    const [fullscreenActive, setFullscreenActive] = useState(false);
+
     const completionPercent = Math.min(
         100,
         (completedNotes / Math.max(totalNotes, 1)) * 100,
     );
     const completionPercentLabel = `${Math.round(completionPercent)}%`;
 
+    useEffect(() => {
+        const onFullscreenChange = () => {
+            setFullscreenActive(Boolean(document.fullscreenElement));
+        };
+
+        document.addEventListener("fullscreenchange", onFullscreenChange);
+        onFullscreenChange();
+
+        return () => {
+            document.removeEventListener("fullscreenchange", onFullscreenChange);
+        };
+    }, []);
+
+    const onToggleFullscreen = useCallback(async () => {
+        try {
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+                return;
+            }
+
+            await document.documentElement.requestFullscreen();
+        } catch {
+            // Ignore fullscreen errors (e.g. unsupported browser or blocked request).
+        }
+    }, []);
+
     return (
         <div className="practice-page">
-            <AppTopBar
-                rightSlot={
-                    <>
-                        <div className="midi-chip">
-                            <span
-                                className={`status-dot ${midiConnected ? "connected" : "disconnected"}`}
-                                aria-hidden
-                            />
-                            <span className="midi-chip-label">{midiLabel}</span>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="profile-button"
-                            aria-label="Open settings"
-                            onClick={onOpenSettings}
-                        >
-                            <span className="material-symbols-outlined">settings</span>
-                        </button>
-                    </>
-                }
-            />
-
             <header className="practice-header">
                 <div className="practice-header-inner">
-                    <div className="practice-header-top">
-                        <div className="practice-session-meta">
-                            <h2>Practice Session</h2>
-                            <p>Range: {rangeLabel} | {totalNotes} Notes</p>
-                        </div>
+                    <div className="practice-session-meta">
+                        <h2>Practice Session</h2>
+                        <p>Range: {rangeLabel} | {totalNotes} Notes</p>
+                    </div>
 
+                    <div className="practice-header-center">
                         <div className="practice-stat-list">
                             <button
                                 type="button"
@@ -84,37 +84,56 @@ export default function PracticePlayerPage({
                                 onClick={onToggleTimer}
                                 aria-label={timerRunning ? "Stop timer" : "Start timer"}
                             >
-                                <span className="material-symbols-outlined">schedule</span>
-                                <span className="practice-stat-value">{elapsedTimeLabel}</span>
-                                <span className="practice-stat-label">Time</span>
-                                <span className="material-symbols-outlined timer-chip-action-icon">
-                                    {timerRunning ? "pause_circle" : "play_circle"}
-                                </span>
+                                <span className="material-symbols-outlined">timer</span>
+                                <span className="practice-stat-value mono">{elapsedTimeLabel}</span>
                             </button>
 
                             <div className="practice-stat-chip">
                                 <span className="material-symbols-outlined">music_note</span>
-                                <span className="practice-stat-value">{completedNotes}/{totalNotes}</span>
-                                <span className="practice-stat-label">Notes</span>
+                                <div className="practice-notes-value">
+                                    <span className="practice-stat-value mono">{completedNotes}</span>
+                                    <span className="practice-stat-total">/{totalNotes}</span>
+                                </div>
                             </div>
 
                             <div className="practice-stat-chip success">
                                 <span className="material-symbols-outlined">check_circle</span>
-                                <span className="practice-stat-value">{accuracy}%</span>
-                                <span className="practice-stat-label">Acc.</span>
+                                <span className="practice-stat-value mono">{accuracy}%</span>
                             </div>
+                        </div>
+
+                        <div className="practice-progress-row">
+                            <span className="practice-progress-label">{completionPercentLabel}</span>
+                            <div className="practice-progress-track" aria-label="Completed notes progress">
+                                <span
+                                    className="practice-progress-fill"
+                                    style={{ width: `${completionPercent}%` }}
+                                />
+                            </div>
+                            <span className="practice-progress-label">100%</span>
                         </div>
                     </div>
 
-                    <div className="practice-progress-row">
-                        <span className="practice-progress-label">{completionPercentLabel}</span>
-                        <div className="practice-progress-track" aria-label="Completed notes progress">
-                            <span
-                                className="practice-progress-fill"
-                                style={{ width: `${completionPercent}%` }}
-                            />
-                        </div>
-                        <span className="practice-progress-label">100%</span>
+                    <div className="practice-header-actions">
+                        <button
+                            type="button"
+                            className="practice-icon-button"
+                            aria-label="Open settings"
+                            onClick={onOpenSettings}
+                        >
+                            <span className="material-symbols-outlined">settings</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="practice-icon-button"
+                            aria-label={fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"}
+                            onClick={onToggleFullscreen}
+                        >
+                            <span className="material-symbols-outlined">
+                                {fullscreenActive ? "fullscreen_exit" : "fullscreen"}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </header>
@@ -132,10 +151,12 @@ export default function PracticePlayerPage({
             </main>
 
             <footer className="practice-footer">
-                <button type="button" className="finish-button" onClick={onFinish}>
-                    <span className="material-symbols-outlined">flag</span>
-                    <span>Finish Session</span>
-                </button>
+                <div className="practice-footer-inner">
+                    <button type="button" className="finish-button" onClick={onFinish}>
+                        <span className="material-symbols-outlined">flag</span>
+                        <span>Finish Session</span>
+                    </button>
+                </div>
             </footer>
         </div>
     );
