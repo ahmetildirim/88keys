@@ -48,8 +48,8 @@ export interface StaffHandle {
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Zoom level for the rendered score (2× for readability). */
-const SCORE_ZOOM = 1;
+/** Zoom level for the rendered score (1.5× for readability). */
+const SCORE_ZOOM = 1.5;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -89,8 +89,11 @@ const Staff = forwardRef<StaffHandle, StaffProps>(function Staff(
       drawTitle: false,
       drawPartNames: false,
       drawMeasureNumbers: false,
-      autoResize: true,
       followCursor: true,
+      stretchLastSystemLine: true,
+      spacingFactorSoftmax: 100,
+      autoBeam: true,
+      autoResize: true,
     });
 
     return osmdRef.current;

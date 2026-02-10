@@ -72,7 +72,7 @@ export default function PracticePlayerPage({
             <header className="practice-header">
                 <div className="practice-header-inner">
                     <div className="practice-session-meta">
-                        <h2>Practice Session</h2>
+                        <h2>Practice session</h2>
                         <p>Range: {rangeLabel} | {totalNotes} Notes</p>
                     </div>
 
@@ -154,7 +154,7 @@ export default function PracticePlayerPage({
                 <div className="practice-footer-inner">
                     <button type="button" className="finish-button" onClick={onFinish}>
                         <span className="material-symbols-outlined">flag</span>
-                        <span>Finish Session</span>
+                        <span>Finish session</span>
                     </button>
                 </div>
             </footer>
