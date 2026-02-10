@@ -1,0 +1,115 @@
+/* -------------------------------------------------------------------------- */
+/* Dark mode tuning                                                           */
+/* -------------------------------------------------------------------------- */
+
+.dark .setup-nav,
+.dark .settings-nav {
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.dark .midi-chip {
+    box-shadow: none;
+}
+
+.dark .midi-chip-label,
+.dark .section-head span,
+.dark .key-hint,
+.dark .setup-footer,
+.dark .ghost-link,
+.dark .back-button,
+.dark .settings-bottom-row,
+.dark .settings-info {
+    color: var(--text-soft);
+}
+
+.dark .practice-page {
+    background: #0d1424;
+}
+
+.dark .practice-header,
+.dark .practice-footer {
+    border-color: #243045;
+    background: #0f1829;
+}
+
+.dark .practice-session-meta h2 {
+    color: #e5ecf8;
+}
+
+.dark .practice-session-meta p {
+    color: #8ea2c0;
+}
+
+.dark .practice-stat-chip {
+    background: #162034;
+    border-color: #2a3850;
+    box-shadow: none;
+}
+
+.dark .practice-stat-chip .material-symbols-outlined,
+.dark .practice-stat-label {
+    color: #8ea2c0;
+}
+
+.dark .practice-stat-value {
+    color: #e5ecf8;
+}
+
+.dark .practice-stat-chip.success {
+    background: #0f2d26;
+    border-color: #1f6550;
+}
+
+.dark .practice-stat-chip.success .material-symbols-outlined,
+.dark .practice-stat-chip.success .practice-stat-label {
+    color: #4ad7a0;
+}
+
+.dark .practice-stat-chip.success .practice-stat-value {
+    color: #c8f5e4;
+}
+
+.dark .timer-chip:hover {
+    border-color: #3a4f70;
+    background: #1a2740;
+}
+
+.dark .timer-chip.running {
+    border-color: #44689a;
+    background: #1a3155;
+}
+
+.dark .timer-chip-action-icon {
+    color: #80abde;
+}
+
+.dark .practice-progress-label {
+    color: #8ea2c0;
+}
+
+.dark .practice-progress-track {
+    background: #2a3a54;
+}
+
+.dark .metric-value {
+    color: #e5ecf8;
+}
+
+.dark .finish-button {
+    border-color: color-mix(in srgb, #2f8bf2 72%, white 28%);
+    background: linear-gradient(180deg, #2f8bf2, #1979ea);
+    color: #ffffff;
+    box-shadow: 0 12px 24px rgba(11, 49, 97, 0.45);
+}
+
+.dark .finish-button:hover {
+    box-shadow: 0 16px 28px rgba(11, 49, 97, 0.6);
+}
+
+.dark .toggle-track {
+    background: #38485f;
+}
+
+.dark .toggle-track::after {
+    background: #edf2ff;
+}

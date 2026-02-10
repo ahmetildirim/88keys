@@ -1,0 +1,274 @@
+/* -------------------------------------------------------------------------- */
+/* Practice player page                                                       */
+/* -------------------------------------------------------------------------- */
+
+.practice-page {
+    min-height: 100vh;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.practice-header {
+    border-bottom: 1px solid var(--line);
+    min-height: 112px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px 14px;
+}
+
+.practice-header-inner {
+    width: min(100%, 1340px);
+    display: grid;
+    gap: 12px;
+}
+
+.practice-header-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+}
+
+.practice-session-meta h2 {
+    margin: 0;
+    font-size: clamp(1.2rem, 1.8vw, 1.8rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #111827;
+}
+
+.practice-session-meta p {
+    margin: 4px 0 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #5b6f8d;
+}
+
+.practice-stat-list {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    justify-self: center;
+    grid-column: 2;
+}
+
+.practice-stat-chip {
+    border-radius: 11px;
+    border: 1px solid #dee6f1;
+    background: #f6f8fb;
+    min-height: 46px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.practice-stat-chip .material-symbols-outlined {
+    font-size: 16px;
+    color: #8a9cb6;
+}
+
+.practice-stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #17233a;
+}
+
+.practice-stat-label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #8a9cb6;
+}
+
+.practice-stat-chip.success {
+    border-color: #b8e5d2;
+    background: #ecfbf4;
+}
+
+.practice-stat-chip.success .material-symbols-outlined,
+.practice-stat-chip.success .practice-stat-label {
+    color: #0f9e69;
+}
+
+.practice-stat-chip.success .practice-stat-value {
+    color: #0f6a50;
+}
+
+.timer-chip {
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.timer-chip:hover {
+    border-color: #c7d4e7;
+    background: #eef3fa;
+}
+
+.timer-chip.running {
+    border-color: #b8d0f3;
+    background: #edf4ff;
+}
+
+.timer-chip-action-icon {
+    font-size: 17px;
+    color: #5a7fb4;
+}
+
+.practice-progress-row {
+    width: min(100%, 640px);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.practice-progress-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #8ca0bc;
+}
+
+.practice-progress-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #e7edf6;
+    overflow: hidden;
+}
+
+.practice-progress-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--blue);
+    transition: width 0.25s ease;
+}
+
+.practice-main {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 20px 16px;
+}
+
+.missed-message {
+    position: absolute;
+    top: clamp(16px, 5vw, 32px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--error) 20%, transparent);
+    background: color-mix(in srgb, var(--error) 8%, white 92%);
+    color: var(--error);
+    font-size: 1.02rem;
+    font-weight: 600;
+    box-shadow: 0 8px 18px rgba(244, 63, 94, 0.1);
+}
+
+.practice-score {
+    width: min(100%, 1520px);
+    height: 100%;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.practice-score .osmd {
+    width: 100%;
+    max-width: 100%;
+    min-height: 360px;
+    max-height: 72vh;
+    overflow: auto hidden;
+}
+
+.practice-score .osmd svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.practice-footer {
+    border-top: 1px solid var(--line);
+    background: #ffffff;
+    padding: 18px clamp(16px, 4vw, 30px) 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.practice-metrics {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: clamp(20px, 4vw, 30px);
+}
+
+.metric {
+    display: grid;
+    gap: 2px;
+}
+
+.metric-label {
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    font-size: 11px;
+    font-weight: 700;
+    color: #8da0ba;
+}
+
+.metric-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #16243a;
+}
+
+.metric-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--success);
+}
+
+.finish-button {
+    min-width: clamp(200px, 24vw, 260px);
+    min-height: 56px;
+    padding: 0 20px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--blue) 72%, white 28%);
+    background: linear-gradient(180deg, #2f8bf2, #1979ea);
+    color: #ffffff;
+    font-size: 1.12rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 20px rgba(25, 121, 234, 0.26);
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.finish-button .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.finish-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 24px rgba(25, 121, 234, 0.34);
+}

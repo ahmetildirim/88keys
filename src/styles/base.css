@@ -1,0 +1,122 @@
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200&display=swap");
+
+:root {
+    color-scheme: light;
+    --blue: #3b82f6;
+    --blue-strong: #2563eb;
+    --bg-light: #f3f4f6;
+    --surface: #ffffff;
+    --surface-muted: #f8fafc;
+    --line: #e3e8f0;
+    --line-strong: #d6dee9;
+    --text-main: #1f2b3f;
+    --text-soft: #64748b;
+    --text-faint: #94a3b8;
+    --success: #10b981;
+    --error: #f43f5e;
+    --shadow-soft: 0 12px 28px rgba(15, 23, 42, 0.08);
+    --shadow-hard: 0 18px 36px rgba(15, 23, 42, 0.12);
+}
+
+.dark {
+    color-scheme: dark;
+    --bg-light: #0f172a;
+    --surface: #111a2b;
+    --surface-muted: #151f33;
+    --line: #243045;
+    --line-strong: #304059;
+    --text-main: #e5ecf8;
+    --text-soft: #9fb0cb;
+    --text-faint: #7f91b0;
+    --shadow-soft: 0 16px 34px rgba(2, 6, 23, 0.35);
+    --shadow-hard: 0 24px 44px rgba(2, 6, 23, 0.45);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: "Lexend", "Segoe UI", sans-serif;
+    background: var(--bg-light);
+    color: var(--text-main);
+    text-rendering: geometricPrecision;
+}
+
+button,
+input,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-weight: 400;
+    font-style: normal;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #c4ccdb;
+}
+
+.status-dot.connected {
+    background: var(--success);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.status-dot.disconnected {
+    animation: pulse-disconnected 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-disconnected {
+
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

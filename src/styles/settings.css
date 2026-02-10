@@ -1,0 +1,313 @@
+/* -------------------------------------------------------------------------- */
+/* Settings page                                                              */
+/* -------------------------------------------------------------------------- */
+
+.settings-page {
+    min-height: 100vh;
+    background: var(--bg-light);
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    min-height: 70px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+.settings-nav-inner {
+    width: min(100%, 1060px);
+    margin: 0 auto;
+    min-height: inherit;
+    padding: 0 clamp(16px, 4vw, 28px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.settings-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    background: var(--blue);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--blue) 28%, transparent);
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-soft);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.back-button:hover {
+    color: var(--blue);
+    background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
+}
+
+.back-button .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.settings-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: clamp(24px, 5vw, 60px) 16px 48px;
+}
+
+.settings-wrapper {
+    width: min(100%, 770px);
+    display: grid;
+    gap: 24px;
+}
+
+.settings-intro {
+    text-align: center;
+    display: grid;
+    gap: 8px;
+}
+
+.settings-intro h1 {
+    margin: 0;
+    font-size: 1.875rem;
+    letter-spacing: -0.02em;
+}
+
+.settings-intro p {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: clamp(1rem, 2vw, 1.08rem);
+}
+
+.settings-card {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+}
+
+.settings-section {
+    padding: clamp(18px, 4vw, 28px);
+    display: grid;
+    gap: 14px;
+}
+
+.settings-section+.settings-section {
+    border-top: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+}
+
+.settings-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--blue) 16%, transparent);
+    color: var(--blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-title h2 {
+    margin: 0;
+    font-size: 1.12rem;
+    letter-spacing: -0.01em;
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.toggle-row h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.toggle-row p {
+    margin: 4px 0 0;
+    color: var(--text-soft);
+    font-size: 0.98rem;
+}
+
+.switch {
+    position: relative;
+    display: inline-flex;
+}
+
+.toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+.toggle-track {
+    width: 50px;
+    height: 28px;
+    border-radius: 999px;
+    background: #d9e0ea;
+    display: inline-block;
+    position: relative;
+    transition: background-color 0.18s ease;
+}
+
+.toggle-track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    transition: transform 0.18s ease;
+}
+
+.toggle-input:checked+.toggle-track {
+    background: var(--blue);
+}
+
+.toggle-input:checked+.toggle-track::after {
+    transform: translateX(22px);
+}
+
+.settings-field {
+    font-size: 0.93rem;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--text-main) 88%, white 12%);
+}
+
+.select-wrap {
+    position: relative;
+}
+
+.select-wrap select {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 9px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-muted);
+    font-size: 0.93rem;
+    padding: 0 42px 0 12px;
+    appearance: none;
+    outline: none;
+}
+
+.select-wrap select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 20%, transparent);
+}
+
+.select-wrap .material-symbols-outlined {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-faint);
+    pointer-events: none;
+}
+
+.device-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.device-status .status-dot {
+    width: 7px;
+    height: 7px;
+}
+
+.device-status.connected {
+    color: #16a34a;
+}
+
+.device-status.connected .status-dot {
+    background: #22c55e;
+}
+
+.device-status.disconnected {
+    color: #94a3b8;
+}
+
+.device-status.disconnected .status-dot {
+    background: #c4ccdb;
+}
+
+.settings-info {
+    border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+    background: var(--surface-muted);
+    border-radius: 9px;
+    color: var(--text-soft);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 11px 12px;
+}
+
+.settings-info .material-symbols-outlined {
+    font-size: 17px;
+    margin-top: 2px;
+}
+
+.settings-info p {
+    margin: 0;
+    font-size: 0.93rem;
+}
+
+.settings-bottom-row {
+    border-top: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+    background: color-mix(in srgb, var(--surface-muted) 85%, var(--surface) 15%);
+    padding: 16px clamp(18px, 4vw, 28px);
+    display: block;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+}
+
+.settings-handle {
+    width: 72px;
+    height: 4px;
+    border-radius: 999px;
+    margin: 0 auto;
+    background: color-mix(in srgb, var(--line-strong) 82%, transparent);
+}
