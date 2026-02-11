@@ -1,22 +1,22 @@
-import type { MidiInputOption } from "../types";
+import type { MidiInputOption, ThemeMode } from "../types";
 import AppTopBar from "./AppTopBar";
 
 interface SettingsPageProps {
-    darkMode: boolean;
+    themeMode: ThemeMode;
     midiInputs: MidiInputOption[];
     midiDevice: string;
     midiConnected: boolean;
-    onDarkModeChange: (value: boolean) => void;
+    onThemeModeChange: (value: ThemeMode) => void;
     onMidiDeviceChange: (value: string) => void;
     onBack: () => void;
 }
 
 export default function SettingsPage({
-    darkMode,
+    themeMode,
     midiInputs,
     midiDevice,
     midiConnected,
-    onDarkModeChange,
+    onThemeModeChange,
     onMidiDeviceChange,
     onBack,
 }: SettingsPageProps) {
@@ -50,19 +50,24 @@ export default function SettingsPage({
 
                             <div className="toggle-row">
                                 <div>
-                                    <h3>Dark mode</h3>
-                                    <p>Switch between light and dark themes.</p>
+                                    <h3>Theme</h3>
+                                    <p>Choose light, dark, or follow your system setting.</p>
                                 </div>
-                                <label className="switch" htmlFor="dark-mode-toggle">
-                                    <input
-                                        id="dark-mode-toggle"
-                                        className="toggle-input"
-                                        type="checkbox"
-                                        checked={darkMode}
-                                        onChange={(event) => onDarkModeChange(event.target.checked)}
-                                    />
-                                    <span className="toggle-track" />
-                                </label>
+                                <div className="select-wrap theme-select-wrap">
+                                    <select
+                                        id="theme-mode-select"
+                                        value={themeMode}
+                                        onChange={(event) =>
+                                            onThemeModeChange(event.target.value as ThemeMode)
+                                        }
+                                        aria-label="Theme mode"
+                                    >
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark</option>
+                                        <option value="system">System</option>
+                                    </select>
+                                    <span className="material-symbols-outlined">expand_more</span>
+                                </div>
                             </div>
                         </div>
 

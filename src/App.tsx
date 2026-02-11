@@ -19,7 +19,7 @@ import useMidiDevices from "./hooks/useMidiDevices";
 import useMidiInput from "./hooks/useMidiInput";
 import useSightReadingSession from "./hooks/useSightReadingSession";
 import useTimer from "./hooks/useTimer";
-import type { AppPage, CursorFeedback, ReturnPage } from "./types";
+import type { AppPage, CursorFeedback, ReturnPage, ThemeMode } from "./types";
 import { clamp, formatTime, midiStatusLabel, midiToNoteLabel } from "./utils";
 
 // ---------------------------------------------------------------------------
@@ -58,7 +58,8 @@ export default function App() {
   const [seed, setSeed] = useState(1);
 
   // Appearance
-  const [darkMode, setDarkMode] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
   // Session stats
   const [cursorFeedback, setCursorFeedback] = useState<CursorFeedback>("idle");
@@ -76,6 +77,20 @@ export default function App() {
   const timer = useTimer();
   const { midiInputs, selectedDevice, setSelectedDevice } = useMidiDevices();
   const { reset, handleNoteOn, handleNoteOff } = useSightReadingSession();
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateSystemTheme = () => setSystemPrefersDark(mediaQuery.matches);
+
+    updateSystemTheme();
+    mediaQuery.addEventListener("change", updateSystemTheme);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateSystemTheme);
+    };
+  }, []);
+
+  const darkMode = themeMode === "dark" || (themeMode === "system" && systemPrefersDark);
 
   // Dark mode class on <html>
   useEffect(() => {
@@ -364,11 +379,11 @@ export default function App() {
 
   return (
     <SettingsPage
-      darkMode={darkMode}
+      themeMode={themeMode}
       midiInputs={midiInputs}
       midiDevice={selectedDevice}
       midiConnected={midiConnected}
-      onDarkModeChange={setDarkMode}
+      onThemeModeChange={setThemeMode}
       onMidiDeviceChange={setSelectedDevice}
       onBack={closeSettings}
     />
