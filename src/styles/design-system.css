@@ -697,9 +697,9 @@ input[type="number"] {
     color: var(--accent-contrast);
 }
 
-/* Presets panel */
+/* Trainings panel */
 
-.presets-panel {
+.trainings-panel {
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     background: var(--surface-2);
@@ -712,7 +712,7 @@ input[type="number"] {
     overflow: hidden;
 }
 
-.presets-list {
+.trainings-list {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -725,7 +725,7 @@ input[type="number"] {
     overscroll-behavior: contain;
 }
 
-.preset-item {
+.training-item {
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--surface-1);
@@ -734,17 +734,17 @@ input[type="number"] {
     gap: 10px;
 }
 
-.preset-item.active {
+.training-item.active {
     border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
     background: color-mix(in srgb, var(--surface-1) 78%, var(--accent) 22%);
 }
 
-.preset-meta {
+.training-meta {
     display: grid;
     gap: 4px;
 }
 
-.preset-level {
+.training-level {
     display: inline-block;
     font-size: 0.68rem;
     font-weight: 700;
@@ -758,19 +758,19 @@ input[type="number"] {
     opacity: 0.85;
 }
 
-.preset-meta h3 {
+.training-meta h3 {
     margin: 0;
     font-size: 0.92rem;
     letter-spacing: -0.01em;
 }
 
-.preset-meta p {
+.training-meta p {
     margin: 0;
     font-size: 0.76rem;
     color: var(--text-3);
 }
 
-.preset-load-button {
+.training-load-button {
     min-height: 36px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--line-strong);
@@ -785,7 +785,7 @@ input[type="number"] {
     transition: border-color 0.16s ease, background-color 0.16s ease;
 }
 
-.preset-load-button:hover {
+.training-load-button:hover {
     border-color: var(--accent-soft);
     background: color-mix(in srgb, var(--surface-3) 72%, var(--accent-soft) 28%);
     color: var(--accent-contrast);
@@ -1770,7 +1770,7 @@ input[type="number"] {
         overflow: visible;
     }
 
-    .presets-list,
+    .trainings-list,
     .previous-sessions-list {
         overflow: visible;
     }

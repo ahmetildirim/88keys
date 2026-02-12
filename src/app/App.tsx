@@ -24,7 +24,7 @@ import {
   MAX_TOTAL_NOTES,
   MIN_TOTAL_NOTES,
 } from "../features/setup/constants";
-import { PRESETS } from "../features/setup/config/presets";
+import { TRAININGS } from "../features/setup/config/trainings";
 import { NOTE_NAMES, generateScore, type NoteName } from "../entities/score";
 import PracticePage from "../pages/Practice/PracticePage";
 import ResultsPage from "../pages/Results/ResultsPage";
@@ -335,13 +335,13 @@ export default function App() {
     setTotalNotes(clampNoteCount(selectedSession.config.totalNotes));
   }, [sessionRuns]);
 
-  const loadPreset = useCallback((presetId: string) => {
-    const preset = PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+  const loadTraining = useCallback((trainingId: string) => {
+    const training = TRAININGS.find((t) => t.id === trainingId);
+    if (!training) return;
 
-    setMinNote(preset.minNote);
-    setMaxNote(preset.maxNote);
-    setTotalNotes(clampNoteCount(preset.totalNotes));
+    setMinNote(training.minNote);
+    setMaxNote(training.maxNote);
+    setTotalNotes(clampNoteCount(training.totalNotes));
   }, []);
 
   const startSession = useCallback(() => {
@@ -478,8 +478,8 @@ export default function App() {
             onOpenSettings={() => openSettings("setup")}
             previousSessions={previousSessions}
             onLoadPreviousSession={loadPreviousSession}
-            presets={PRESETS}
-            onLoadPreset={loadPreset}
+            trainings={TRAININGS}
+            onLoadTraining={loadTraining}
           />
         }
       />

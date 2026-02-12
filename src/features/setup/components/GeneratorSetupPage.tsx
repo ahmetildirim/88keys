@@ -1,7 +1,7 @@
 import type { NoteName } from "../../../entities/score";
 import { APP_RELEASE_STAGE } from "../../../shared/config/appMeta";
 import { MAX_TOTAL_NOTES, MIN_TOTAL_NOTES } from "../constants";
-import type { Preset } from "../config/presets";
+import type { Training } from "../config/trainings";
 import type { PreviousSessionItem } from "../types";
 import AppTopBar from "../../../shared/ui/components/AppTopBar";
 import KeyStepper from "./KeyStepper";
@@ -26,8 +26,8 @@ interface GeneratorSetupPageProps {
     onOpenSettings: () => void;
     previousSessions: PreviousSessionItem[];
     onLoadPreviousSession: (sessionId: string) => void;
-    presets: readonly Preset[];
-    onLoadPreset: (presetId: string) => void;
+    trainings: readonly Training[];
+    onLoadTraining: (trainingId: string) => void;
 }
 
 export default function GeneratorSetupPage({
@@ -50,8 +50,8 @@ export default function GeneratorSetupPage({
     onOpenSettings,
     previousSessions,
     onLoadPreviousSession,
-    presets,
-    onLoadPreset,
+    trainings,
+    onLoadTraining,
 }: GeneratorSetupPageProps) {
     return (
         <div className="app-page setup-page">
@@ -86,32 +86,32 @@ export default function GeneratorSetupPage({
           </header> */}
 
                     <div className="setup-content">
-                        <aside className="setup-side-panel presets-panel">
+                        <aside className="setup-side-panel trainings-panel">
                             <div className="section-head">
                                 <div>
                                     <p className="section-kicker">Quick start</p>
-                                    <h2>Presets</h2>
+                                    <h2>Trainings</h2>
                                 </div>
                             </div>
 
-                            <ul className="presets-list">
-                                {presets.map((preset) => (
+                            <ul className="trainings-list">
+                                {trainings.map((training) => (
                                     <li
-                                        key={preset.id}
-                                        className="preset-item"
+                                        key={training.id}
+                                        className="training-item"
                                     >
-                                        <div className="preset-meta">
-                                            <h3>{preset.title}</h3>
+                                        <div className="training-meta">
+                                            <h3>{training.title}</h3>
                                             <p className="mono">
-                                                {preset.minNote} – {preset.maxNote} · {preset.totalNotes} notes
+                                                {training.minNote} – {training.maxNote} · {training.totalNotes} notes
                                             </p>
                                         </div>
 
                                         <button
                                             type="button"
-                                            className="preset-load-button"
-                                            onClick={() => onLoadPreset(preset.id)}
-                                            aria-label={`Load preset ${preset.title}`}
+                                            className="training-load-button"
+                                            onClick={() => onLoadTraining(training.id)}
+                                            aria-label={`Load training ${training.title}`}
                                         >
                                             Load
                                         </button>

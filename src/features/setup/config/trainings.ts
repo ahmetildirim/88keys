@@ -1,6 +1,6 @@
 import type { NoteName } from "../../../entities/score";
 
-export type Preset = {
+export type Training = {
     id: string;
     title: string;
     minNote: NoteName;
@@ -8,7 +8,7 @@ export type Preset = {
     totalNotes: number;
 };
 
-export const PRESETS: readonly Preset[] = [
+export const TRAININGS: readonly Training[] = [
     { id: "treble-low", title: "Treble low", minNote: "C4", maxNote: "C5", totalNotes: 60 },
     { id: "bass-middle", title: "Bass middle", minNote: "C3", maxNote: "C4", totalNotes: 60 },
     { id: "treble-middle", title: "Treble middle", minNote: "C5", maxNote: "C6", totalNotes: 80 },
