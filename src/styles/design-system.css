@@ -665,9 +665,10 @@ input[type="number"] {
 }
 
 .practice-session-meta h2 {
-    font-size: clamp(1.32rem, 2.4vw, 1.8rem);
+    font-size: clamp(1.05rem, 2.4vw, 1.8rem);
     line-height: 1;
     letter-spacing: -0.02em;
+    white-space: nowrap;
 }
 
 .practice-session-meta p:last-child {

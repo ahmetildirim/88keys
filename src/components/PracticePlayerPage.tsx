@@ -73,7 +73,7 @@ export default function PracticePlayerPage({
                 <div className="practice-header-inner">
                     <div className="practice-session-meta">
                         <p className="section-kicker">Live session</p>
-                        <h2>Practice player</h2>
+                        <h2>Generated practice</h2>
                         <p>
                             Range: <span className="mono">{rangeLabel}</span> |{" "}
                             <span className="mono">{totalNotes} notes</span>
