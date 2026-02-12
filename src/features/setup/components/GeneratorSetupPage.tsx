@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { NoteName } from "../../../entities/score";
 import { APP_RELEASE_STAGE } from "../../../shared/config/appMeta";
 import { MAX_TOTAL_NOTES, MIN_TOTAL_NOTES } from "../constants";
@@ -28,6 +29,8 @@ interface GeneratorSetupPageProps {
     onLoadPreviousSession: (sessionId: string) => void;
     trainings: readonly Training[];
     onLoadTraining: (trainingId: string) => void;
+    onSaveTraining: (title: string) => void;
+    onDeleteTraining: (trainingId: string) => void;
 }
 
 export default function GeneratorSetupPage({
@@ -52,7 +55,20 @@ export default function GeneratorSetupPage({
     onLoadPreviousSession,
     trainings,
     onLoadTraining,
+    onSaveTraining,
+    onDeleteTraining,
 }: GeneratorSetupPageProps) {
+    const [showSaveForm, setShowSaveForm] = useState(false);
+    const [saveTitle, setSaveTitle] = useState("");
+
+    const handleSave = () => {
+        const trimmed = saveTitle.trim();
+        if (!trimmed) return;
+        onSaveTraining(trimmed);
+        setSaveTitle("");
+        setShowSaveForm(false);
+    };
+
     return (
         <div className="app-page setup-page">
             <AppTopBar
@@ -94,30 +110,44 @@ export default function GeneratorSetupPage({
                                 </div>
                             </div>
 
-                            <ul className="trainings-list">
-                                {trainings.map((training) => (
-                                    <li
-                                        key={training.id}
-                                        className="training-item"
-                                    >
-                                        <div className="training-meta">
-                                            <h3>{training.title}</h3>
-                                            <p className="mono">
-                                                {training.minNote} – {training.maxNote} · {training.totalNotes} notes
-                                            </p>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            className="training-load-button"
-                                            onClick={() => onLoadTraining(training.id)}
-                                            aria-label={`Load training ${training.title}`}
+                            {trainings.length === 0 ? (
+                                <p className="trainings-empty">No trainings yet.</p>
+                            ) : (
+                                <ul className="trainings-list">
+                                    {trainings.map((training) => (
+                                        <li
+                                            key={training.id}
+                                            className="training-item"
                                         >
-                                            Load
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                                            <div className="training-meta">
+                                                <h3>{training.title}</h3>
+                                                <p className="mono">
+                                                    {training.minNote} – {training.maxNote} · {training.totalNotes} notes
+                                                </p>
+                                            </div>
+
+                                            <div className="training-actions">
+                                                <button
+                                                    type="button"
+                                                    className="training-load-button"
+                                                    onClick={() => onLoadTraining(training.id)}
+                                                    aria-label={`Load training ${training.title}`}
+                                                >
+                                                    Load
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="training-delete-button"
+                                                    onClick={() => onDeleteTraining(training.id)}
+                                                    aria-label={`Delete training ${training.title}`}
+                                                >
+                                                    <span className="material-symbols-outlined">delete</span>
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </aside>
 
                         <section className="setup-card">
@@ -232,6 +262,45 @@ export default function GeneratorSetupPage({
                                 </div>
 
                                 <div className="setup-actions">
+                                    {showSaveForm ? (
+                                        <div className="save-training-form">
+                                            <input
+                                                className="save-training-input"
+                                                type="text"
+                                                placeholder="Training name"
+                                                value={saveTitle}
+                                                onChange={(e) => setSaveTitle(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+                                                // biome-ignore lint/a11y/noAutofocus: intentional for inline form
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                className="save-training-confirm"
+                                                onClick={handleSave}
+                                                disabled={!saveTitle.trim()}
+                                            >
+                                                Save
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="save-training-cancel"
+                                                onClick={() => { setShowSaveForm(false); setSaveTitle(""); }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="save-training-button"
+                                            onClick={() => setShowSaveForm(true)}
+                                        >
+                                            <span className="material-symbols-outlined">bookmark_add</span>
+                                            <span>Save as training</span>
+                                        </button>
+                                    )}
+
                                     <button
                                         type="button"
                                         className="start-session-button"

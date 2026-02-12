@@ -24,7 +24,8 @@ import {
   MAX_TOTAL_NOTES,
   MIN_TOTAL_NOTES,
 } from "../features/setup/constants";
-import { TRAININGS } from "../features/setup/config/trainings";
+import { TRAININGS, type Training } from "../features/setup/config/trainings";
+import type { PersistedCustomTraining } from "../shared/storage";
 import { NOTE_NAMES, generateScore, type NoteName } from "../entities/score";
 import PracticePage from "../pages/Practice/PracticePage";
 import ResultsPage from "../pages/Results/ResultsPage";
@@ -34,10 +35,14 @@ import { APP_ROUTES } from "./routes";
 import type { AppPage, ReturnPage } from "./routes/types";
 import { clamp, formatTime } from "../shared/utils";
 import {
+  addCustomTraining,
   addSessionRun,
+  deleteCustomTraining,
+  listCustomTrainings,
   listSessionRuns,
   loadSettings,
   saveSettings,
+  seedTrainings,
   toPreviousSessionItem,
   type PersistedSessionRun,
 } from "../shared/storage";
@@ -89,6 +94,7 @@ export default function App() {
 
   const [previousSessions, setPreviousSessions] = useState<PreviousSessionItem[]>([]);
   const [sessionRuns, setSessionRuns] = useState<PersistedSessionRun[]>([]);
+  const [trainings, setTrainings] = useState<Training[]>([]);
   const [isStorageHydrated, setIsStorageHydrated] = useState(false);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
@@ -110,8 +116,18 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
-    void Promise.all([loadSettings(), listSessionRuns()])
-      .then(([settings, runs]) => {
+    void seedTrainings(
+      TRAININGS.map((t) => ({
+        id: t.id,
+        title: t.title,
+        minNote: t.minNote,
+        maxNote: t.maxNote,
+        totalNotes: t.totalNotes,
+        createdAt: Date.now(),
+      })),
+    )
+      .then(() => Promise.all([loadSettings(), listSessionRuns(), listCustomTrainings()]))
+      .then(([settings, runs, savedTrainings]) => {
         if (!mounted) return;
 
         if (settings) {
@@ -124,6 +140,15 @@ export default function App() {
 
         setSessionRuns(runs);
         setPreviousSessions(runs.map(toPreviousSessionItem));
+        setTrainings(
+          savedTrainings.map((t) => ({
+            id: t.id,
+            title: t.title,
+            minNote: t.minNote,
+            maxNote: t.maxNote,
+            totalNotes: t.totalNotes,
+          })),
+        );
       })
       .finally(() => {
         if (!mounted) return;
@@ -336,12 +361,40 @@ export default function App() {
   }, [sessionRuns]);
 
   const loadTraining = useCallback((trainingId: string) => {
-    const training = TRAININGS.find((t) => t.id === trainingId);
+    const training = trainings.find((t) => t.id === trainingId);
     if (!training) return;
 
     setMinNote(training.minNote);
     setMaxNote(training.maxNote);
     setTotalNotes(clampNoteCount(training.totalNotes));
+  }, [trainings]);
+
+  const saveTraining = useCallback((title: string) => {
+    const training: PersistedCustomTraining = {
+      id: crypto.randomUUID(),
+      title,
+      minNote,
+      maxNote,
+      totalNotes,
+      createdAt: Date.now(),
+    };
+
+    setTrainings((current) => [
+      { id: training.id, title: training.title, minNote: training.minNote, maxNote: training.maxNote, totalNotes: training.totalNotes },
+      ...current,
+    ]);
+
+    void addCustomTraining(training).catch((error: unknown) => {
+      console.warn("Failed to save custom training to IndexedDB.", error);
+    });
+  }, [minNote, maxNote, totalNotes]);
+
+  const removeTraining = useCallback((trainingId: string) => {
+    setTrainings((current) => current.filter((t) => t.id !== trainingId));
+
+    void deleteCustomTraining(trainingId).catch((error: unknown) => {
+      console.warn("Failed to delete custom training from IndexedDB.", error);
+    });
   }, []);
 
   const startSession = useCallback(() => {
@@ -478,8 +531,10 @@ export default function App() {
             onOpenSettings={() => openSettings("setup")}
             previousSessions={previousSessions}
             onLoadPreviousSession={loadPreviousSession}
-            trainings={TRAININGS}
+            trainings={trainings}
             onLoadTraining={loadTraining}
+            onSaveTraining={saveTraining}
+            onDeleteTraining={removeTraining}
           />
         }
       />

@@ -25,3 +25,12 @@ export type PersistedSessionRun = {
     totalNotes: number;
   };
 };
+
+export type PersistedCustomTraining = {
+  id: string;
+  title: string;
+  minNote: NoteName;
+  maxNote: NoteName;
+  totalNotes: number;
+  createdAt: number;
+};

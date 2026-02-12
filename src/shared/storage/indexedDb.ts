@@ -1,11 +1,14 @@
-import type { PersistedSessionRun, PersistedSettings } from "./types";
+import type { PersistedCustomTraining, PersistedSessionRun, PersistedSettings } from "./types";
 
 const DB_NAME = "88keys-db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const SETTINGS_STORE = "app_settings";
 const SESSION_RUNS_STORE = "session_runs";
+const CUSTOM_TRAININGS_STORE = "custom_trainings";
 const SETTINGS_KEY = "user_settings";
 const CREATED_AT_INDEX = "createdAt";
+
+const SEEDED_KEY = "trainings_seeded";
 
 type SettingsRecord = {
   key: string;
@@ -75,6 +78,22 @@ function isPersistedSessionRun(value: unknown): value is PersistedSessionRun {
   );
 }
 
+function isPersistedCustomTraining(value: unknown): value is PersistedCustomTraining {
+  if (typeof value !== "object" || value === null) return false;
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.minNote === "string" &&
+    typeof candidate.maxNote === "string" &&
+    typeof candidate.totalNotes === "number" &&
+    Number.isFinite(candidate.totalNotes) &&
+    typeof candidate.createdAt === "number" &&
+    Number.isFinite(candidate.createdAt)
+  );
+}
+
 function openDb(): Promise<IDBDatabase | null> {
   if (!supportsIndexedDb()) {
     return Promise.resolve(null);
@@ -93,6 +112,11 @@ function openDb(): Promise<IDBDatabase | null> {
 
         if (!db.objectStoreNames.contains(SESSION_RUNS_STORE)) {
           const store = db.createObjectStore(SESSION_RUNS_STORE, { keyPath: "id" });
+          store.createIndex(CREATED_AT_INDEX, CREATED_AT_INDEX, { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains(CUSTOM_TRAININGS_STORE)) {
+          const store = db.createObjectStore(CUSTOM_TRAININGS_STORE, { keyPath: "id" });
           store.createIndex(CREATED_AT_INDEX, CREATED_AT_INDEX, { unique: false });
         }
       };
@@ -187,5 +211,76 @@ export async function addSessionRun(run: PersistedSessionRun): Promise<void> {
 
   if (result === null) {
     return;
+  }
+}
+
+export async function listCustomTrainings(): Promise<PersistedCustomTraining[]> {
+  const result = await withStore(CUSTOM_TRAININGS_STORE, "readonly", (store) =>
+    new Promise<unknown[]>((resolve) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
+      request.onerror = () => resolve([]);
+    }),
+  );
+
+  if (!result) {
+    return [];
+  }
+
+  return result
+    .filter((entry): entry is PersistedCustomTraining => isPersistedCustomTraining(entry))
+    .sort((left, right) => right.createdAt - left.createdAt);
+}
+
+export async function addCustomTraining(training: PersistedCustomTraining): Promise<void> {
+  await withStore(CUSTOM_TRAININGS_STORE, "readwrite", (store) =>
+    new Promise<boolean>((resolve) => {
+      const request = store.put(training);
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => resolve(false);
+    }),
+  );
+}
+
+export async function deleteCustomTraining(id: string): Promise<void> {
+  await withStore(CUSTOM_TRAININGS_STORE, "readwrite", (store) =>
+    new Promise<boolean>((resolve) => {
+      const request = store.delete(id);
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => resolve(false);
+    }),
+  );
+}
+
+export async function seedTrainings(trainings: PersistedCustomTraining[]): Promise<void> {
+  const alreadySeeded = await withStore(SETTINGS_STORE, "readonly", (store) =>
+    new Promise<boolean>((resolve) => {
+      const request = store.get(SEEDED_KEY);
+      request.onsuccess = () => resolve(request.result != null);
+      request.onerror = () => resolve(false);
+    }),
+  );
+
+  if (alreadySeeded) return;
+
+  const db = await openDb();
+  if (!db) return;
+
+  try {
+    const tx = db.transaction([CUSTOM_TRAININGS_STORE, SETTINGS_STORE], "readwrite");
+    const trainingsStore = tx.objectStore(CUSTOM_TRAININGS_STORE);
+    const settingsStore = tx.objectStore(SETTINGS_STORE);
+
+    for (const training of trainings) {
+      trainingsStore.put(training);
+    }
+    settingsStore.put({ key: SEEDED_KEY, value: true });
+
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } finally {
+    db.close();
   }
 }
