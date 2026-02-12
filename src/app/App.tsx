@@ -16,7 +16,7 @@ import {
 } from "../features/practice";
 import { useSightReadingSession, useTimer } from "../features/session";
 import type { ThemeMode } from "../features/settings/types";
-import { MOCK_PREVIOUS_SESSIONS } from "../features/setup/config/mockPreviousSessions";
+import type { PreviousSessionItem } from "../features/setup/types";
 import {
   DEFAULT_MAX_NOTE,
   DEFAULT_MIN_NOTE,
@@ -32,6 +32,14 @@ import SetupPage from "../pages/Setup/SetupPage";
 import { APP_ROUTES } from "./routes";
 import type { AppPage, ReturnPage } from "./routes/types";
 import { clamp, formatTime } from "../shared/utils";
+import {
+  addSessionRun,
+  listSessionRuns,
+  loadSettings,
+  saveSettings,
+  toPreviousSessionItem,
+  type PersistedSessionRun,
+} from "../shared/storage";
 
 function clampNoteCount(value: number): number {
   return clamp(value, MIN_TOTAL_NOTES, MAX_TOTAL_NOTES);
@@ -80,6 +88,9 @@ export default function App() {
   const [activePreviousSessionId, setActivePreviousSessionId] = useState<string | null>(
     null,
   );
+  const [previousSessions, setPreviousSessions] = useState<PreviousSessionItem[]>([]);
+  const [sessionRuns, setSessionRuns] = useState<PersistedSessionRun[]>([]);
+  const [isStorageHydrated, setIsStorageHydrated] = useState(false);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
@@ -96,6 +107,34 @@ export default function App() {
   const timer = useTimer();
   const { midiInputs, selectedDevice, setSelectedDevice } = useMidiDevices();
   const { reset, handleNoteOn, handleNoteOff } = useSightReadingSession();
+
+  useEffect(() => {
+    let mounted = true;
+
+    void Promise.all([loadSettings(), listSessionRuns()])
+      .then(([settings, runs]) => {
+        if (!mounted) return;
+
+        if (settings) {
+          setThemeMode(settings.themeMode);
+          setSelectedDevice(settings.selectedMidiDevice);
+          setMinNote(settings.minNote);
+          setMaxNote(settings.maxNote);
+          setTotalNotes(clampNoteCount(settings.totalNotes));
+        }
+
+        setSessionRuns(runs);
+        setPreviousSessions(runs.map(toPreviousSessionItem));
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setIsStorageHydrated(true);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [setSelectedDevice]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -152,6 +191,28 @@ export default function App() {
       missedMessageTimer.current = null;
     }, MISSED_MESSAGE_TIMEOUT_MS);
   }, []);
+
+  useEffect(() => {
+    if (!isStorageHydrated) return;
+
+    void saveSettings({
+      themeMode,
+      selectedMidiDevice: selectedDevice,
+      minNote,
+      maxNote,
+      totalNotes,
+      updatedAt: Date.now(),
+    }).catch((error: unknown) => {
+      console.warn("Failed to save settings to IndexedDB.", error);
+    });
+  }, [
+    isStorageHydrated,
+    maxNote,
+    minNote,
+    selectedDevice,
+    themeMode,
+    totalNotes,
+  ]);
 
   useEffect(() => {
     reset(score.expectedNotes);
@@ -265,7 +326,7 @@ export default function App() {
   );
 
   const loadPreviousSession = useCallback((sessionId: string) => {
-    const selectedSession = MOCK_PREVIOUS_SESSIONS.find(
+    const selectedSession = sessionRuns.find(
       (session) => session.id === sessionId,
     );
     if (!selectedSession) return;
@@ -274,7 +335,7 @@ export default function App() {
     setMaxNote(selectedSession.config.maxNote);
     setTotalNotes(clampNoteCount(selectedSession.config.totalNotes));
     setActivePreviousSessionId(selectedSession.id);
-  }, []);
+  }, [sessionRuns]);
 
   const startSession = useCallback(() => {
     setAutoFinishToken(0);
@@ -296,16 +357,51 @@ export default function App() {
       .sort((left, right) => right.misses - left.misses)
       .slice(0, 2);
 
-    setSessionResult({
+    const nextResult: SessionResult = {
       accuracy,
       speedNpm,
       speedDelta,
       improvements,
       durationSeconds,
       sessionId: `#88K-${String(seed).padStart(4, "0")}`,
+    };
+    const sessionRun: PersistedSessionRun = {
+      id: crypto.randomUUID(),
+      sessionId: nextResult.sessionId,
+      createdAt: Date.now(),
+      durationSeconds: nextResult.durationSeconds,
+      accuracy: nextResult.accuracy,
+      speedNpm: nextResult.speedNpm,
+      speedDelta: nextResult.speedDelta,
+      improvements: nextResult.improvements,
+      config: {
+        minNote,
+        maxNote,
+        totalNotes,
+      },
+    };
+
+    setSessionResult(nextResult);
+    setSessionRuns((current) => [sessionRun, ...current]);
+    setPreviousSessions((current) => [
+      toPreviousSessionItem(sessionRun),
+      ...current,
+    ]);
+    void addSessionRun(sessionRun).catch((error: unknown) => {
+      console.warn("Failed to save session run to IndexedDB.", error);
     });
     navigate(APP_ROUTES.results);
-  }, [accuracy, completedNotes, missedNoteCounts, navigate, seed, timer]);
+  }, [
+    accuracy,
+    completedNotes,
+    maxNote,
+    minNote,
+    missedNoteCounts,
+    navigate,
+    seed,
+    timer,
+    totalNotes,
+  ]);
 
   useEffect(() => {
     if (page !== "practice") return;
@@ -373,7 +469,7 @@ export default function App() {
             }
             onStartSession={startSession}
             onOpenSettings={() => openSettings("setup")}
-            previousSessions={MOCK_PREVIOUS_SESSIONS}
+            previousSessions={previousSessions}
             onLoadPreviousSession={loadPreviousSession}
             activePreviousSessionId={activePreviousSessionId}
           />

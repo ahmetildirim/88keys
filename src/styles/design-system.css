@@ -626,6 +626,8 @@ input[type="number"] {
     margin: 0;
     padding: 0;
     display: grid;
+    align-content: start;
+    grid-auto-rows: max-content;
     gap: 10px;
     min-height: 0;
     overflow-y: auto;
