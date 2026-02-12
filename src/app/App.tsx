@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import AboutPage from "../pages/About/AboutPage";
 import {
@@ -28,12 +29,9 @@ import PracticePage from "../pages/Practice/PracticePage";
 import ResultsPage from "../pages/Results/ResultsPage";
 import SettingsPage from "../pages/Settings/SettingsPage";
 import SetupPage from "../pages/Setup/SetupPage";
+import { APP_ROUTES } from "./routes";
 import type { AppPage, ReturnPage } from "./routes/types";
 import { clamp, formatTime } from "../shared/utils";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function clampNoteCount(value: number): number {
   return clamp(value, MIN_TOTAL_NOTES, MAX_TOTAL_NOTES);
@@ -48,19 +46,33 @@ type SessionResult = {
   sessionId: string;
 };
 
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
+function pageFromPathname(pathname: string): AppPage {
+  switch (pathname) {
+    case APP_ROUTES.practice:
+      return "practice";
+    case APP_ROUTES.settings:
+      return "settings";
+    case APP_ROUTES.results:
+      return "results";
+    case APP_ROUTES.about:
+      return "about";
+    case APP_ROUTES.setup:
+    default:
+      return "setup";
+  }
+}
 
 export default function App() {
   const staffRef = useRef<StaffHandle>(null);
   const missedMessageTimer = useRef<number | null>(null);
 
-  // Navigation
-  const [page, setPage] = useState<AppPage>("setup");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const page = useMemo(() => pageFromPathname(location.pathname), [location.pathname]);
+
   const [settingsReturnPage, setSettingsReturnPage] = useState<ReturnPage>("setup");
 
-  // Generator parameters
   const [minNote, setMinNote] = useState<NoteName>(DEFAULT_MIN_NOTE);
   const [maxNote, setMaxNote] = useState<NoteName>(DEFAULT_MAX_NOTE);
   const [totalNotes, setTotalNotes] = useState(DEFAULT_TOTAL_NOTES);
@@ -69,23 +81,18 @@ export default function App() {
     null,
   );
 
-  // Appearance
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
-  // Session stats
   const [cursorFeedback, setCursorFeedback] = useState<CursorFeedback>("idle");
   const [completedNotes, setCompletedNotes] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [correctAttempts, setCorrectAttempts] = useState(0);
   const [missedMessage, setMissedMessage] = useState<string | null>(null);
   const [autoFinishToken, setAutoFinishToken] = useState(0);
-  const [missedNoteCounts, setMissedNoteCounts] = useState<Record<string, number>>(
-    {},
-  );
+  const [missedNoteCounts, setMissedNoteCounts] = useState<Record<string, number>>({});
   const [sessionResult, setSessionResult] = useState<SessionResult | null>(null);
 
-  // Extracted hooks
   const timer = useTimer();
   const { midiInputs, selectedDevice, setSelectedDevice } = useMidiDevices();
   const { reset, handleNoteOn, handleNoteOff } = useSightReadingSession();
@@ -104,12 +111,10 @@ export default function App() {
 
   const darkMode = themeMode === "dark" || (themeMode === "system" && systemPrefersDark);
 
-  // Dark mode class on <html>
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
-  // Cleanup missed-message timer on unmount
   useEffect(() => {
     return () => {
       if (missedMessageTimer.current !== null) {
@@ -118,7 +123,6 @@ export default function App() {
     };
   }, []);
 
-  // Generate score
   const score = useMemo(
     () =>
       generateScore({
@@ -130,7 +134,6 @@ export default function App() {
     [minNote, maxNote, totalNotes, seed],
   );
 
-  // Missed-message helpers
   const clearMissedMessage = useCallback(() => {
     if (missedMessageTimer.current !== null) {
       window.clearTimeout(missedMessageTimer.current);
@@ -150,7 +153,6 @@ export default function App() {
     }, MISSED_MESSAGE_TIMEOUT_MS);
   }, []);
 
-  // Reset session when score changes
   useEffect(() => {
     reset(score.expectedNotes);
     setCursorFeedback("idle");
@@ -164,12 +166,11 @@ export default function App() {
     staffRef.current?.resetCursor();
   }, [reset, score.expectedNotes, clearMissedMessage, timer.reset]);
 
-  // MIDI event handlers
   const onNoteOn = useCallback(
     (note: number) => {
       if (page !== "practice") return;
 
-      if (page === "practice" && !timer.isRunning) {
+      if (!timer.isRunning) {
         timer.start();
       }
 
@@ -219,7 +220,6 @@ export default function App() {
 
   const midiStatus = useMidiInput({ onNoteOn, onNoteOff, onAllNotesOff });
 
-  // Derived values
   const midiConnected = midiStatus === "MIDI: connected";
   const midiLabel = midiStatusLabel(midiStatus);
   const cursorStyle = CURSOR_STYLES[cursorFeedback];
@@ -240,7 +240,6 @@ export default function App() {
       ? "Full piano (A0 - C8)"
       : `${minNote} - ${maxNote}`;
 
-  // Note-range step handlers
   const updateMinNoteByStep = useCallback(
     (delta: number) => {
       setMinNote((current) => {
@@ -277,13 +276,12 @@ export default function App() {
     setActivePreviousSessionId(selectedSession.id);
   }, []);
 
-  // Navigation
   const startSession = useCallback(() => {
     setAutoFinishToken(0);
     setSessionResult(null);
     setSeed((value) => value + 1);
-    setPage("practice");
-  }, []);
+    navigate(APP_ROUTES.practice);
+  }, [navigate]);
 
   const finishSession = useCallback(() => {
     timer.stop();
@@ -306,8 +304,8 @@ export default function App() {
       durationSeconds,
       sessionId: `#88K-${String(seed).padStart(4, "0")}`,
     });
-    setPage("results");
-  }, [accuracy, completedNotes, missedNoteCounts, seed, timer]);
+    navigate(APP_ROUTES.results);
+  }, [accuracy, completedNotes, missedNoteCounts, navigate, seed, timer]);
 
   useEffect(() => {
     if (page !== "practice") return;
@@ -316,116 +314,132 @@ export default function App() {
   }, [autoFinishToken, finishSession, page]);
 
   const newSetupFromResults = useCallback(() => {
-    setPage("setup");
-  }, []);
+    navigate(APP_ROUTES.setup);
+  }, [navigate]);
 
   const retrySession = useCallback(() => {
     setSeed((value) => value + 1);
-    setPage("practice");
-  }, []);
+    navigate(APP_ROUTES.practice);
+  }, [navigate]);
 
-  const openSettings = useCallback((from: ReturnPage) => {
-    setSettingsReturnPage(from);
-    setPage("settings");
-  }, []);
+  const openSettings = useCallback(
+    (from: ReturnPage) => {
+      setSettingsReturnPage(from);
+      navigate(APP_ROUTES.settings);
+    },
+    [navigate],
+  );
 
   const closeSettings = useCallback(() => {
-    setPage(settingsReturnPage);
-  }, [settingsReturnPage]);
+    navigate(APP_ROUTES[settingsReturnPage]);
+  }, [navigate, settingsReturnPage]);
 
   const openAbout = useCallback(() => {
-    setPage("about");
-  }, []);
+    navigate(APP_ROUTES.about);
+  }, [navigate]);
 
   const closeAbout = useCallback(() => {
-    setPage("settings");
-  }, []);
-
-  // Render
-  if (page === "setup") {
-    return (
-      <SetupPage
-        midiConnected={midiConnected}
-        midiLabel={midiLabel}
-        minNote={minNote}
-        maxNote={maxNote}
-        totalNotes={totalNotes}
-        rangeSummary={rangeSummary}
-        selectedRangeLeftPercent={selectedRangeLeftPercent}
-        selectedRangeWidthPercent={selectedRangeWidthPercent}
-        onDecreaseMinNote={() => updateMinNoteByStep(-1)}
-        onIncreaseMinNote={() => updateMinNoteByStep(1)}
-        onDecreaseMaxNote={() => updateMaxNoteByStep(-1)}
-        onIncreaseMaxNote={() => updateMaxNoteByStep(1)}
-        onDecreaseNotes={() =>
-          setTotalNotes((value) => clampNoteCount(value - 1))
-        }
-        onIncreaseNotes={() =>
-          setTotalNotes((value) => clampNoteCount(value + 1))
-        }
-        onNoteCountInput={(value) =>
-          setTotalNotes(
-            Number.isNaN(value) ? DEFAULT_TOTAL_NOTES : clampNoteCount(value),
-          )
-        }
-        onStartSession={startSession}
-        onOpenSettings={() => openSettings("setup")}
-        previousSessions={MOCK_PREVIOUS_SESSIONS}
-        onLoadPreviousSession={loadPreviousSession}
-        activePreviousSessionId={activePreviousSessionId}
-      />
-    );
-  }
-
-  if (page === "practice") {
-    return (
-      <PracticePage
-        staffRef={staffRef}
-        scoreXml={score.xml}
-        cursorStyle={cursorStyle}
-        rangeLabel={`${minNote} - ${maxNote}`}
-        totalNotes={totalNotes}
-        completedNotes={completedNotes}
-        accuracy={accuracy}
-        elapsedTimeLabel={formatTime(elapsedSeconds)}
-        timerRunning={timer.isRunning}
-        onToggleTimer={timer.toggle}
-        missedMessage={missedMessage}
-        onOpenSettings={() => openSettings("practice")}
-        onFinish={finishSession}
-      />
-    );
-  }
-
-  if (page === "results" && sessionResult) {
-    return (
-      <ResultsPage
-        accuracy={sessionResult.accuracy}
-        speedNpm={sessionResult.speedNpm}
-        speedDelta={sessionResult.speedDelta}
-        improvements={sessionResult.improvements}
-        durationLabel={formatTime(sessionResult.durationSeconds)}
-        sessionId={sessionResult.sessionId}
-        onNewSetup={newSetupFromResults}
-        onTryAgain={retrySession}
-      />
-    );
-  }
-
-  if (page === "about") {
-    return <AboutPage onBack={closeAbout} />;
-  }
+    navigate(APP_ROUTES.settings);
+  }, [navigate]);
 
   return (
-    <SettingsPage
-      themeMode={themeMode}
-      midiInputs={midiInputs}
-      midiDevice={selectedDevice}
-      midiConnected={midiConnected}
-      onThemeModeChange={setThemeMode}
-      onMidiDeviceChange={setSelectedDevice}
-      onOpenAbout={openAbout}
-      onBack={closeSettings}
-    />
+    <Routes>
+      <Route
+        path={APP_ROUTES.setup}
+        element={
+          <SetupPage
+            midiConnected={midiConnected}
+            midiLabel={midiLabel}
+            minNote={minNote}
+            maxNote={maxNote}
+            totalNotes={totalNotes}
+            rangeSummary={rangeSummary}
+            selectedRangeLeftPercent={selectedRangeLeftPercent}
+            selectedRangeWidthPercent={selectedRangeWidthPercent}
+            onDecreaseMinNote={() => updateMinNoteByStep(-1)}
+            onIncreaseMinNote={() => updateMinNoteByStep(1)}
+            onDecreaseMaxNote={() => updateMaxNoteByStep(-1)}
+            onIncreaseMaxNote={() => updateMaxNoteByStep(1)}
+            onDecreaseNotes={() =>
+              setTotalNotes((value) => clampNoteCount(value - 1))
+            }
+            onIncreaseNotes={() =>
+              setTotalNotes((value) => clampNoteCount(value + 1))
+            }
+            onNoteCountInput={(value) =>
+              setTotalNotes(
+                Number.isNaN(value) ? DEFAULT_TOTAL_NOTES : clampNoteCount(value),
+              )
+            }
+            onStartSession={startSession}
+            onOpenSettings={() => openSettings("setup")}
+            previousSessions={MOCK_PREVIOUS_SESSIONS}
+            onLoadPreviousSession={loadPreviousSession}
+            activePreviousSessionId={activePreviousSessionId}
+          />
+        }
+      />
+
+      <Route
+        path={APP_ROUTES.practice}
+        element={
+          <PracticePage
+            staffRef={staffRef}
+            scoreXml={score.xml}
+            cursorStyle={cursorStyle}
+            rangeLabel={`${minNote} - ${maxNote}`}
+            totalNotes={totalNotes}
+            completedNotes={completedNotes}
+            accuracy={accuracy}
+            elapsedTimeLabel={formatTime(elapsedSeconds)}
+            timerRunning={timer.isRunning}
+            onToggleTimer={timer.toggle}
+            missedMessage={missedMessage}
+            onOpenSettings={() => openSettings("practice")}
+            onFinish={finishSession}
+          />
+        }
+      />
+
+      <Route
+        path={APP_ROUTES.results}
+        element={
+          sessionResult ? (
+            <ResultsPage
+              accuracy={sessionResult.accuracy}
+              speedNpm={sessionResult.speedNpm}
+              speedDelta={sessionResult.speedDelta}
+              improvements={sessionResult.improvements}
+              durationLabel={formatTime(sessionResult.durationSeconds)}
+              sessionId={sessionResult.sessionId}
+              onNewSetup={newSetupFromResults}
+              onTryAgain={retrySession}
+            />
+          ) : (
+            <Navigate to={APP_ROUTES.setup} replace />
+          )
+        }
+      />
+
+      <Route
+        path={APP_ROUTES.settings}
+        element={
+          <SettingsPage
+            themeMode={themeMode}
+            midiInputs={midiInputs}
+            midiDevice={selectedDevice}
+            midiConnected={midiConnected}
+            onThemeModeChange={setThemeMode}
+            onMidiDeviceChange={setSelectedDevice}
+            onOpenAbout={openAbout}
+            onBack={closeSettings}
+          />
+        }
+      />
+
+      <Route path={APP_ROUTES.about} element={<AboutPage onBack={closeAbout} />} />
+      <Route path="/" element={<Navigate to={APP_ROUTES.setup} replace />} />
+      <Route path="*" element={<Navigate to={APP_ROUTES.setup} replace />} />
+    </Routes>
   );
 }
