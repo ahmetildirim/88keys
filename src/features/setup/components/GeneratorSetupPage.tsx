@@ -1,6 +1,7 @@
 import type { NoteName } from "../../../entities/score";
 import { APP_RELEASE_STAGE } from "../../../shared/config/appMeta";
 import { MAX_TOTAL_NOTES, MIN_TOTAL_NOTES } from "../constants";
+import type { Preset } from "../config/presets";
 import type { PreviousSessionItem } from "../types";
 import AppTopBar from "../../../shared/ui/components/AppTopBar";
 import KeyStepper from "./KeyStepper";
@@ -25,7 +26,8 @@ interface GeneratorSetupPageProps {
     onOpenSettings: () => void;
     previousSessions: PreviousSessionItem[];
     onLoadPreviousSession: (sessionId: string) => void;
-    activePreviousSessionId: string | null;
+    presets: readonly Preset[];
+    onLoadPreset: (presetId: string) => void;
 }
 
 export default function GeneratorSetupPage({
@@ -48,7 +50,8 @@ export default function GeneratorSetupPage({
     onOpenSettings,
     previousSessions,
     onLoadPreviousSession,
-    activePreviousSessionId,
+    presets,
+    onLoadPreset,
 }: GeneratorSetupPageProps) {
     return (
         <div className="app-page setup-page">
@@ -83,6 +86,40 @@ export default function GeneratorSetupPage({
           </header> */}
 
                     <div className="setup-content">
+                        <aside className="setup-side-panel presets-panel">
+                            <div className="section-head">
+                                <div>
+                                    <p className="section-kicker">Quick start</p>
+                                    <h2>Presets</h2>
+                                </div>
+                            </div>
+
+                            <ul className="presets-list">
+                                {presets.map((preset) => (
+                                    <li
+                                        key={preset.id}
+                                        className="preset-item"
+                                    >
+                                        <div className="preset-meta">
+                                            <h3>{preset.title}</h3>
+                                            <p className="mono">
+                                                {preset.minNote} – {preset.maxNote} · {preset.totalNotes} notes
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className="preset-load-button"
+                                            onClick={() => onLoadPreset(preset.id)}
+                                            aria-label={`Load preset ${preset.title}`}
+                                        >
+                                            Load
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </aside>
+
                         <section className="setup-card">
                             <div className="setup-main-panel">
                                 <div className="setup-section">
@@ -195,14 +232,14 @@ export default function GeneratorSetupPage({
                                 </div>
 
                                 <div className="setup-actions">
-                <button
-                  type="button"
-                  className="start-session-button"
-                  onClick={onStartSession}
-                >
-                  <span>Start session</span>
-                </button>
-              </div>
+                                    <button
+                                        type="button"
+                                        className="start-session-button"
+                                        onClick={onStartSession}
+                                    >
+                                        <span>Start session</span>
+                                    </button>
+                                </div>
                             </div>
                         </section>
 
@@ -219,13 +256,12 @@ export default function GeneratorSetupPage({
                             ) : (
                                 <ul className="previous-sessions-list">
                                     {previousSessions.map((session) => {
-                                        const isActive = activePreviousSessionId === session.id;
                                         const range = `${session.config.minNote} - ${session.config.maxNote}`;
 
                                         return (
                                             <li
                                                 key={session.id}
-                                                className={`previous-session-item ${isActive ? "active" : ""}`}
+                                                className="previous-session-item"
                                             >
                                                 <div className="previous-session-meta">
                                                     <p>{session.createdAtLabel}</p>
@@ -242,7 +278,7 @@ export default function GeneratorSetupPage({
                                                     onClick={() => onLoadPreviousSession(session.id)}
                                                     aria-label={`Load session from ${session.createdAtLabel}`}
                                                 >
-                                                    {isActive ? "Loaded" : "Load"}
+                                                    Load
                                                 </button>
                                             </li>
                                         );

@@ -24,6 +24,7 @@ import {
   MAX_TOTAL_NOTES,
   MIN_TOTAL_NOTES,
 } from "../features/setup/constants";
+import { PRESETS } from "../features/setup/config/presets";
 import { NOTE_NAMES, generateScore, type NoteName } from "../entities/score";
 import PracticePage from "../pages/Practice/PracticePage";
 import ResultsPage from "../pages/Results/ResultsPage";
@@ -85,9 +86,7 @@ export default function App() {
   const [maxNote, setMaxNote] = useState<NoteName>(DEFAULT_MAX_NOTE);
   const [totalNotes, setTotalNotes] = useState(DEFAULT_TOTAL_NOTES);
   const [seed, setSeed] = useState(1);
-  const [activePreviousSessionId, setActivePreviousSessionId] = useState<string | null>(
-    null,
-  );
+
   const [previousSessions, setPreviousSessions] = useState<PreviousSessionItem[]>([]);
   const [sessionRuns, setSessionRuns] = useState<PersistedSessionRun[]>([]);
   const [isStorageHydrated, setIsStorageHydrated] = useState(false);
@@ -334,8 +333,16 @@ export default function App() {
     setMinNote(selectedSession.config.minNote);
     setMaxNote(selectedSession.config.maxNote);
     setTotalNotes(clampNoteCount(selectedSession.config.totalNotes));
-    setActivePreviousSessionId(selectedSession.id);
   }, [sessionRuns]);
+
+  const loadPreset = useCallback((presetId: string) => {
+    const preset = PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+
+    setMinNote(preset.minNote);
+    setMaxNote(preset.maxNote);
+    setTotalNotes(clampNoteCount(preset.totalNotes));
+  }, []);
 
   const startSession = useCallback(() => {
     setAutoFinishToken(0);
@@ -471,7 +478,8 @@ export default function App() {
             onOpenSettings={() => openSettings("setup")}
             previousSessions={previousSessions}
             onLoadPreviousSession={loadPreviousSession}
-            activePreviousSessionId={activePreviousSessionId}
+            presets={PRESETS}
+            onLoadPreset={loadPreset}
           />
         }
       />
