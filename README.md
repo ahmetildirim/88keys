@@ -39,18 +39,6 @@ npm run dev
 
 Open the local URL shown by Vite (usually `http://localhost:5173`).
 
-## Available Scripts
-
-- `npm run dev` - start the local dev server
-- `npm run build` - create a production build
-- `npm run preview` - preview the production build locally
-- `npm run typecheck` - run TypeScript type checks
-- `npm run lint` - run ESLint
-- `npm run test` - run tests once
-- `npm run test:watch` - run tests in watch mode
-- `npm run format` - format the codebase with Prettier
-- `npm run format:check` - check formatting without changing files
-
 ## Browser Notes
 
 - MIDI features require a browser with Web MIDI API support.
