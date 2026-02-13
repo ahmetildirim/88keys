@@ -1,7 +1,5 @@
 import type { GeneratedScore, GeneratorOptions, NoteStep } from "./types";
 
-type Clef = "treble" | "bass";
-
 type Pitch = {
   step: NoteStep;
   octave: number;
@@ -21,12 +19,6 @@ const SEMITONE_OFFSET: Readonly<Record<NoteStep, number>> = {
 
 const DIVISIONS = 4;
 const NOTES_PER_MEASURE = 4;
-const DURATION_TO_TYPE: Readonly<Record<number, string>> = {
-  2: "eighth",
-  4: "quarter",
-  8: "half",
-  16: "whole",
-};
 
 function createRng(seed: number): () => number {
   let state = seed >>> 0;
@@ -74,9 +66,8 @@ function naturalPitchesInRange(minMidi: number, maxMidi: number): readonly Pitch
   return pitches;
 }
 
-function inferClefFromRange(minMidi: number, maxMidi: number): Clef {
-  const midpoint = (minMidi + maxMidi) / 2;
-  return midpoint < 60 ? "bass" : "treble";
+function inferStaffFromPitch(pitch: Pitch): 1 | 2 {
+  return pitchToMidi(pitch) >= 60 ? 1 : 2;
 }
 
 function serializeAttributes(): string {
@@ -92,7 +83,7 @@ function serializeAttributes(): string {
   ].join("\n");
 }
 
-function serializeNote(pitch: Pitch, staff: 1 | 2): string {
+function serializeNote(pitch: Pitch): string {
   return [
     "        <note>",
     "          <pitch>",
@@ -102,20 +93,7 @@ function serializeNote(pitch: Pitch, staff: 1 | 2): string {
     "          <voice>1</voice>",
     `          <duration>${DIVISIONS}</duration>`,
     "          <type>quarter</type>",
-    `          <staff>${staff}</staff>`,
-    "        </note>",
-  ].join("\n");
-}
-
-function serializeRest(duration: number, staff: 1 | 2): string {
-  const type = DURATION_TO_TYPE[duration] ?? "quarter";
-  return [
-    "        <note>",
-    "          <rest/>",
-    "          <voice>2</voice>",
-    `          <duration>${duration}</duration>`,
-    `          <type>${type}</type>`,
-    `          <staff>${staff}</staff>`,
+    `          <staff>${inferStaffFromPitch(pitch)}</staff>`,
     "        </note>",
   ].join("\n");
 }
@@ -140,9 +118,6 @@ export function generateScore(options: GeneratorOptions): GeneratedScore {
   }
 
   const rng = createRng(seed);
-  const clef = inferClefFromRange(minMidi, maxMidi);
-  const noteStaff: 1 | 2 = clef === "treble" ? 1 : 2;
-  const restStaff: 1 | 2 = clef === "treble" ? 2 : 1;
   const expectedNotes: number[] = [];
   const measureXmls: string[] = [];
 
@@ -158,17 +133,10 @@ export function generateScore(options: GeneratorOptions): GeneratedScore {
 
     expectedNotes.push(...notes.map(pitchToMidi));
     const attributes = measureNumber === 1 ? "\n" + serializeAttributes() : "";
-    const noteDuration = count * DIVISIONS;
-    const noteElements = [
-      notes.map((note) => serializeNote(note, noteStaff)).join("\n"),
-      "        <backup>",
-      `          <duration>${noteDuration}</duration>`,
-      "        </backup>",
-      serializeRest(noteDuration, restStaff),
-    ].join("\n");
+    const noteElements = notes.map((note) => serializeNote(note)).join("\n");
 
     measureXmls.push(
-      [`      <measure number="${measureNumber}">${attributes}`, noteElements, "      </measure>"].join("\n"),
+      [`      <measure number=\"${measureNumber}\">${attributes}`, noteElements, "      </measure>"].join("\n"),
     );
 
     measureNumber += 1;
