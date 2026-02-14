@@ -197,12 +197,13 @@ input[type="number"] {
     border: 1px solid var(--line-strong);
     background: var(--accent);
     color: var(--accent-contrast);
-    font-size: 0.82rem;
+    font-size: 0.66rem;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    letter-spacing: -0.04em;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 .app-brand-wordmark {

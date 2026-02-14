@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { NoteName } from "../../../entities/score";
-import { APP_RELEASE_STAGE } from "../../../shared/config/appMeta";
 import { MAX_TOTAL_NOTES, MIN_TOTAL_NOTES } from "../constants";
 import type { Training } from "../config/trainings";
 import type { PreviousSessionItem } from "../types";

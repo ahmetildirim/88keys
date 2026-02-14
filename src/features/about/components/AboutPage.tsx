@@ -1,6 +1,6 @@
 import AppTopBar from "../../../shared/ui/components/AppTopBar";
 import BackButton from "../../../shared/ui/components/BackButton";
-import { APP_NAME, APP_RELEASE_STAGE, APP_VERSION } from "../../../shared/config/appMeta";
+import { APP_DOMAIN, APP_NAME, APP_RELEASE_STAGE, APP_VERSION } from "../../../shared/config/appMeta";
 
 interface AboutPageProps {
     onBack: () => void;
@@ -47,7 +47,7 @@ export default function AboutPage({ onBack }: AboutPageProps) {
                         <p>
                             If you have suggestions, ideas, or encounter any issues, please{" "}
                             <a
-                                href="https://github.com/ahmetildirim/88keys/issues"
+                                href="https://github.com/ahmetildirim/sightreadinglabs/issues"
                                 target="_blank"
                                 rel="noreferrer"
                             >
@@ -66,7 +66,7 @@ export default function AboutPage({ onBack }: AboutPageProps) {
                             <div className="about-support-actions">
                                 <a
                                     className="about-support-button"
-                                    href="https://github.com/ahmetildirim/88keys"
+                                    href="https://github.com/ahmetildirim/sightreadinglabs"
                                     target="_blank"
                                     rel="noreferrer"
                                 >
@@ -95,7 +95,7 @@ export default function AboutPage({ onBack }: AboutPageProps) {
 
             <footer className="about-footer">
                 <p className="mono">v{APP_VERSION} · {APP_RELEASE_STAGE}</p>
-                <p>© 2026 88keys.app</p>
+                <p>© 2026 {APP_DOMAIN}</p>
             </footer>
         </div>
     );

@@ -1,6 +1,6 @@
-# SFL | sightreadinglabs
+# SFL
 
-sightreadinglabs is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
+SFL is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
 
 ## Features
 

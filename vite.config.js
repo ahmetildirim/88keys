@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["pwa-192.png", "pwa-512.png"],
       manifest: {
-        name: "88keys",
-        short_name: "88keys",
+        name: "SFL",
+        short_name: "SFL",
         description: "Piano sight-reading practice app",
         start_url: "/",
         scope: "/",

@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://88keys.app/sitemap.xml
-Host: https://88keys.app
+Sitemap: https://sighreadinglabs.com/sitemap.xml
+Host: https://sighreadinglabs.com

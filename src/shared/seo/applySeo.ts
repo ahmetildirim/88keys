@@ -7,7 +7,7 @@ import {
   type RouteSeoConfig,
 } from "../config/seo";
 
-const PAGE_JSON_LD_ID = "88keys-webpage-jsonld";
+const PAGE_JSON_LD_ID = "sfl-webpage-jsonld";
 
 function ensureMetaTag(attribute: "name" | "property", key: string): HTMLMetaElement {
   const selector = `meta[${attribute}="${key}"]`;
@@ -76,7 +76,7 @@ export function applySeo(seo: RouteSeoConfig): void {
   setMetaContent("property", "og:description", seo.description);
   setMetaContent("property", "og:url", canonicalUrl);
   setMetaContent("property", "og:image", ogImageUrl);
-  setMetaContent("property", "og:image:alt", "88keys piano sight-reading app preview");
+  setMetaContent("property", "og:image:alt", `${APP_NAME} piano sight-reading app preview`);
 
   setMetaContent("name", "twitter:card", "summary_large_image");
   setMetaContent("name", "twitter:title", seo.title);

@@ -1,8 +1,8 @@
 import { APP_ROUTES } from "../../app/routes";
 import type { AppPage } from "../../app/routes/types";
-import { APP_NAME } from "./appMeta";
+import { APP_NAME, APP_SITE_ORIGIN } from "./appMeta";
 
-export const SITE_ORIGIN = "https://88keys.app";
+export const SITE_ORIGIN = APP_SITE_ORIGIN;
 export const DEFAULT_OG_IMAGE_PATH = "/pwa-512.png";
 export const DEFAULT_SEO_KEYWORDS = [
   "piano sight-reading app",
@@ -10,7 +10,7 @@ export const DEFAULT_SEO_KEYWORDS = [
   "midi piano trainer",
   "beginner piano practice",
   "music reading trainer",
-  "88keys app",
+  "sfl app",
 ].join(", ");
 
 const SETUP_DESCRIPTION =
@@ -51,7 +51,7 @@ export const APP_ROUTE_SEO: Record<AppPage, RouteSeoConfig> = {
   settings: {
     title: `Settings | ${APP_NAME}`,
     description:
-      "Configure MIDI device selection and appearance preferences for 88keys.",
+      "Configure MIDI device selection and appearance preferences for SFL.",
     robots: "noindex, follow",
     canonicalPath: APP_ROUTES.settings,
     ogType: "website",
@@ -59,7 +59,7 @@ export const APP_ROUTE_SEO: Record<AppPage, RouteSeoConfig> = {
   about: {
     title: `About ${APP_NAME}`,
     description:
-      "Learn about 88keys, a simple and focused web app for daily piano sight-reading practice.",
+      "Learn about SFL, a simple and focused web app for daily piano sight-reading practice.",
     robots: "index, follow",
     canonicalPath: APP_ROUTES.about,
     ogType: "article",

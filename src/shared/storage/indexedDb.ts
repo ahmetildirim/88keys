@@ -1,6 +1,6 @@
 import type { PersistedCustomTraining, PersistedSessionRun, PersistedSettings } from "./types";
 
-const DB_NAME = "88keys-db";
+const DB_NAME = "sfl-db";
 const DB_VERSION = 2;
 const SETTINGS_STORE = "app_settings";
 const SESSION_RUNS_STORE = "session_runs";
