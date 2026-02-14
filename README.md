@@ -1,6 +1,6 @@
-# 88keys
+# SFL | sightreadinglabs
 
-88keys is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
+sightreadinglabs is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
 
 ## Features
 
