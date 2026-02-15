@@ -1,6 +1,6 @@
-# SFL
+# SRL
 
-SFL is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
+SRL is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
 
 ## Features
 

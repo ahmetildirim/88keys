@@ -436,7 +436,7 @@ export default function App() {
       speedDelta,
       improvements,
       durationSeconds,
-      sessionId: `#SFL-${String(seed).padStart(4, "0")}`,
+      sessionId: `#SRL-${String(seed).padStart(4, "0")}`,
     };
     const sessionRun: PersistedSessionRun = {
       id: crypto.randomUUID(),

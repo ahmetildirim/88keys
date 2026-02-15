@@ -7,7 +7,7 @@ import {
   type RouteSeoConfig,
 } from "../config/seo";
 
-const PAGE_JSON_LD_ID = "sfl-webpage-jsonld";
+const PAGE_JSON_LD_ID = "srl-webpage-jsonld";
 
 function ensureMetaTag(attribute: "name" | "property", key: string): HTMLMetaElement {
   const selector = `meta[${attribute}="${key}"]`;

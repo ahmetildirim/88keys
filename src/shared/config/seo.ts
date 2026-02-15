@@ -10,7 +10,7 @@ export const DEFAULT_SEO_KEYWORDS = [
   "midi piano trainer",
   "beginner piano practice",
   "music reading trainer",
-  "sfl app",
+  "srl app",
 ].join(", ");
 
 const SETUP_DESCRIPTION =
@@ -51,7 +51,7 @@ export const APP_ROUTE_SEO: Record<AppPage, RouteSeoConfig> = {
   settings: {
     title: `Settings | ${APP_NAME}`,
     description:
-      "Configure MIDI device selection and appearance preferences for SFL.",
+      "Configure MIDI device selection and appearance preferences for SRL.",
     robots: "noindex, follow",
     canonicalPath: APP_ROUTES.settings,
     ogType: "website",
@@ -59,7 +59,7 @@ export const APP_ROUTE_SEO: Record<AppPage, RouteSeoConfig> = {
   about: {
     title: `About ${APP_NAME}`,
     description:
-      "Learn about SFL, a simple and focused web app for daily piano sight-reading practice.",
+      "Learn about SRL, a simple and focused web app for daily piano sight-reading practice.",
     robots: "index, follow",
     canonicalPath: APP_ROUTES.about,
     ogType: "article",

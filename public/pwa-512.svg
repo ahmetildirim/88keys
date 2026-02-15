@@ -13,5 +13,5 @@
   <rect x="274" y="94" width="48" height="315" rx="13" fill="#0f172a" />
   <rect x="334" y="94" width="48" height="315" rx="13" fill="#0f172a" />
   <rect x="394" y="94" width="30" height="315" rx="10" fill="#0f172a" />
-  <text x="256" y="460" text-anchor="middle" font-size="56" font-family="Arial, sans-serif" fill="#f8fafc">SFL</text>
+  <text x="256" y="460" text-anchor="middle" font-size="56" font-family="Arial, sans-serif" fill="#f8fafc">SRL</text>
 </svg>
