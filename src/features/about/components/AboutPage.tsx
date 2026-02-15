@@ -1,6 +1,12 @@
 import AppTopBar from "../../../shared/ui/components/AppTopBar";
 import BackButton from "../../../shared/ui/components/BackButton";
-import { APP_DOMAIN, APP_NAME, APP_RELEASE_STAGE, APP_VERSION } from "../../../shared/config/appMeta";
+import {
+    APP_CONTACT_EMAIL,
+    APP_DOMAIN,
+    APP_NAME,
+    APP_RELEASE_STAGE,
+    APP_VERSION,
+} from "../../../shared/config/appMeta";
 
 interface AboutPageProps {
     onBack: () => void;
@@ -54,6 +60,10 @@ export default function AboutPage({ onBack }: AboutPageProps) {
                                 open an issue on GitHub
                             </a>
                             . Your feedback directly shapes the direction of this project.
+                        </p>
+
+                        <p>
+                            For direct contact: <strong className="mono">{APP_CONTACT_EMAIL}</strong>
                         </p>
 
                         <p>
