@@ -1,6 +1,6 @@
-# sightreading.studio
+# Sight Reading Studio
 
-sightreading.studio is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
+Sight Reading Studio is a focused, beginner-friendly piano sight-reading practice app built with React and TypeScript.
 
 ## Features
 
