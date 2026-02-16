@@ -1,6 +1,6 @@
 import packageJson from "../../../package.json";
 
-export const APP_TITLE = "sightreading.studio";
+export const APP_TITLE = "Sight Reading Studio";
 export const APP_NAME = "SRS";
 export const APP_DOMAIN = "sightreading.studio";
 export const APP_CONTACT_EMAIL = "contact@sightreading.studio";
