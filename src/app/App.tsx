@@ -67,6 +67,8 @@ type SessionResult = {
 
 function pageFromPathname(pathname: string): AppPage {
   switch (pathname) {
+    case "/setup":
+      return "setup";
     case APP_ROUTES.practice:
       return "practice";
     case APP_ROUTES.settings:
@@ -633,7 +635,7 @@ export default function App() {
         />
 
         <Route path={APP_ROUTES.about} element={<AboutPage onBack={closeAbout} />} />
-        <Route path="/" element={<Navigate to={APP_ROUTES.setup} replace />} />
+        <Route path="/setup" element={<Navigate to={APP_ROUTES.setup} replace />} />
         <Route path="*" element={<Navigate to={APP_ROUTES.setup} replace />} />
       </Routes>
     </Suspense>

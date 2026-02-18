@@ -5,6 +5,9 @@ import { APP_SITE_ORIGIN, APP_TITLE } from "./appMeta";
 export const SITE_ORIGIN = APP_SITE_ORIGIN;
 export const DEFAULT_OG_IMAGE_PATH = "/pwa-512.png";
 export const DEFAULT_SEO_KEYWORDS = [
+  "sight reading",
+  "sight reading app",
+  "sight reading online",
   "piano sight-reading",
   "sight reading practice",
   "learn to read sheet music",
@@ -32,9 +35,9 @@ export type RouteSeoConfig = {
 
 export const APP_ROUTE_SEO: Record<AppPage, RouteSeoConfig> = {
   setup: {
-    title: `${APP_TITLE} — Free Piano Sight-Reading Practice`,
+    title: `${APP_TITLE} — Sight Reading App for Piano Practice Online`,
     description:
-      "Free piano sight-reading practice app. Train with your MIDI keyboard, customize note ranges, track accuracy and speed — all offline. Start improving today.",
+      "Free sight reading app for piano. Practice sight reading online with your MIDI keyboard, customize note ranges, and improve reading accuracy and speed.",
     robots: "index, follow, max-image-preview:large, max-snippet:-1",
     canonicalPath: APP_ROUTES.setup,
     ogType: "website",
@@ -64,9 +67,9 @@ export const APP_ROUTE_SEO: Record<AppPage, RouteSeoConfig> = {
     ogType: "website",
   },
   about: {
-    title: `About ${APP_TITLE} — Piano Sight-Reading Practice App`,
+    title: `About ${APP_TITLE} — Free Sight Reading App`,
     description:
-      "Learn about sightreading.studio, a free and focused web app for daily piano sight-reading practice with MIDI keyboard support. No ads, no account, fully offline.",
+      "Learn about Sight Reading Studio, a free sight reading app for daily piano practice online with MIDI keyboard support. No ads, no account, fully offline.",
     robots: "index, follow, max-image-preview:large, max-snippet:-1",
     canonicalPath: APP_ROUTES.about,
     ogType: "article",

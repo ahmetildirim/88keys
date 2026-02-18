@@ -1,8 +1,4 @@
 User-agent: *
-Allow: /
-Disallow: /practice
-Disallow: /results
-Disallow: /settings
+Allow: *
 
 Sitemap: https://sightreading.studio/sitemap.xml
-Host: https://sightreading.studio

@@ -191,6 +191,13 @@ export default function GeneratorSetupPage({
 
             <main className="setup-main">
                 <div className="setup-wrapper">
+                    <section className="setup-intro" style={{ display: "none" }}>
+                        <h1>Free Sight Reading App for Piano Practice Online</h1>
+                        <p>
+                            Practice sight reading online with your MIDI keyboard. Improve note reading
+                            speed and accuracy with focused, customizable sessions.
+                        </p>
+                    </section>
 
                     <div className="setup-content">
                         <aside className="setup-side-panel trainings-panel">
